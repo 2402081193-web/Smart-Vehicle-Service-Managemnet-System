@@ -1,487 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Service - Login</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            padding: 40px;
-        }
-        
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .toggle-link {
-            text-align: center;
-            margin-top: 25px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .toggle-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        .toggle-link a:hover {
-            text-decoration: underline;
-        }
-        
-        .error {
-            color: #e53e3e;
-            font-size: 13px;
-            margin-top: 5px;
-            margin-bottom: 10px;
-            display: none;
-            padding: 10px;
-            background: #fff5f5;
-            border-radius: 6px;
-            border-left: 3px solid #e53e3e;
-        }
-        
-        .success {
-            color: #38a169;
-            font-size: 13px;
-            margin-top: 5px;
-            margin-bottom: 10px;
-            display: none;
-            padding: 10px;
-            background: #f0fff4;
-            border-radius: 6px;
-            border-left: 3px solid #38a169;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .divider {
-            margin: 25px 0;
-            text-align: center;
-            position: relative;
-        }
-        
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #ddd;
-            z-index: 1;
-        }
-        
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            color: #999;
-            font-size: 12px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .demo-info {
-            text-align: center;
-            font-size: 12px;
-            color: #999;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px dashed #ddd;
-        }
-    </style>
+    <title>Ultimate Firebase Test</title>
 </head>
 <body>
-    <div class="container">
-        <!-- Login Form -->
-        <div class="card" id="loginCard">
-            <h2>🚗 Smart Vehicle Service</h2>
-            <div class="subtitle">Welcome back! Please login to your account</div>
-            
-            <form id="loginForm">
-                <div class="form-group">
-                    <input type="email" id="loginEmail" placeholder="Email address" required>
-                </div>
-                
-                <div class="form-group">
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                </div>
-                
-                <div class="error" id="loginError"></div>
-                
-                <button type="submit" id="loginBtn">Login</button>
-            </form>
-            
-            <div class="toggle-link">
-                Don't have an account? <a onclick="showRegister()">Register here</a>
-            </div>
-            
-            <div class="demo-info">
-                <strong>Demo:</strong> Use any email to register
-            </div>
-        </div>
-        
-        <!-- Register Form -->
-        <div class="card hidden" id="registerCard">
-            <h2>🚗 Create Account</h2>
-            <div class="subtitle">Sign up to get started</div>
-            
-            <form id="registerForm">
-                <div class="form-group">
-                    <input type="text" id="registerName" placeholder="Full name" required>
-                </div>
-                
-                <div class="form-group">
-                    <input type="email" id="registerEmail" placeholder="Email address" required>
-                </div>
-                
-                <div class="form-group">
-                    <input type="password" id="registerPassword" placeholder="Password (min. 6 characters)" required>
-                </div>
-                
-                <div class="form-group">
-                    <input type="password" id="registerConfirm" placeholder="Confirm password" required>
-                </div>
-                
-                <div class="error" id="registerError"></div>
-                <div class="success" id="registerSuccess"></div>
-                
-                <button type="submit" id="registerBtn">Register</button>
-            </form>
-            
-            <div class="toggle-link">
-                Already have an account? <a onclick="showLogin()">Login here</a>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Firebase SDK -->
+    <h1>Ultimate Firebase Test</h1>
+    <div id="status"></div>
+    <button onclick="test()">Run Test</button>
+
     <script type="module">
-        // Import all Firebase modules at once
+        // 导入 Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            updateProfile,
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            setDoc,
-            getDoc 
-        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-        
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBFuoNfz4LuXrPdhRRmYiYpe1jGKWdr1pY",
-            authDomain: "smart-vehicle-manage-system.firebaseapp.com",
-            projectId: "smart-vehicle-manage-system",
-            storageBucket: "smart-vehicle-manage-system.firebasestorage.app",
-            messagingSenderId: "284858789054",
-            appId: "1:284858789054:web:74d13ea854831fcd1802ef",
-            measurementId: "G-S6JM38PXW2"
-        };
-        
-        // Initialize Firebase
-        let app, auth, db;
-        
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            console.log("✅ Firebase initialized successfully");
-        } catch (error) {
-            console.error("❌ Firebase initialization error:", error);
-        }
-        
-        // Check if user is already logged in
-        if (auth) {
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    console.log("User already logged in:", user.email);
-                    window.location.href = 'dashboard.html';
-                }
-            });
-        }
-        
-        // Toggle between login and register forms
-        window.showRegister = function() {
-            document.getElementById('loginCard').classList.add('hidden');
-            document.getElementById('registerCard').classList.remove('hidden');
-        };
-        
-        window.showLogin = function() {
-            document.getElementById('registerCard').classList.add('hidden');
-            document.getElementById('loginCard').classList.remove('hidden');
-        };
-        
-        // Handle Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            const loginBtn = document.getElementById('loginBtn');
-            
-            errorDiv.style.display = 'none';
-            
-            // Validation
-            if (!email || !password) {
-                errorDiv.textContent = 'Please fill in all fields';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            // Disable button
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+        window.test = async function() {
+            const status = document.getElementById('status');
+            status.innerHTML = 'Starting test...<br>';
             
             try {
-                console.log("Attempting login with:", email);
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log("✅ Login successful:", userCredential.user.email);
-                // Redirect happens in onAuthStateChanged
-            } catch (error) {
-                console.error('❌ Login error:', error.code, error.message);
+                // 你的配置
+                const firebaseConfig = {
+                    apiKey: "AIzaSyBFuoNfz4LuXrPdhRRmYiYpe1jGKWdr1pY",
+                    authDomain: "smart-vehicle-manage-system.firebaseapp.com",
+                    projectId: "smart-vehicle-manage-system",
+                    storageBucket: "smart-vehicle-manage-system.firebasestorage.app",
+                    messagingSenderId: "284858789054",
+                    appId: "1:284858789054:web:74d13ea854831fcd1802ef"
+                };
                 
-                let errorMessage = 'Login failed';
-                switch(error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = 'User not found. Please register first.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = 'Wrong password';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Invalid email format';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = 'Too many attempts. Try again later';
-                        break;
-                    case 'auth/configuration-not-found':
-                        errorMessage = 'Firebase Authentication not enabled. Please enable Email/Password sign-in in Firebase Console.';
-                        break;
-                    case 'auth/invalid-credential':
-                        errorMessage = 'Invalid email or password';
-                        break;
-                    default:
-                        errorMessage = error.message;
-                }
+                status.innerHTML += '✅ Config loaded<br>';
                 
-                errorDiv.textContent = errorMessage;
-                errorDiv.style.display = 'block';
+                // 初始化
+                const app = initializeApp(firebaseConfig);
+                status.innerHTML += '✅ App initialized<br>';
                 
-                // Re-enable button
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = 'Login';
-            }
-        });
-        
-        // Handle Register
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('registerName').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
-            const password = document.getElementById('registerPassword').value;
-            const confirm = document.getElementById('registerConfirm').value;
-            const errorDiv = document.getElementById('registerError');
-            const successDiv = document.getElementById('registerSuccess');
-            const registerBtn = document.getElementById('registerBtn');
-            
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
-            
-            // Validation
-            if (!name || !email || !password || !confirm) {
-                errorDiv.textContent = 'Please fill in all fields';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            if (password !== confirm) {
-                errorDiv.textContent = 'Passwords do not match';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            if (password.length < 6) {
-                errorDiv.textContent = 'Password must be at least 6 characters';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            // Disable button
-            registerBtn.disabled = true;
-            registerBtn.innerHTML = '<span class="loading-spinner"></span> Creating account...';
-            
-            try {
-                console.log("Attempting to create user:", email);
+                const auth = getAuth(app);
+                status.innerHTML += '✅ Auth initialized<br>';
                 
-                // Step 1: Create user in Firebase Auth
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                console.log("✅ User created in Auth:", user.uid);
+                const db = getFirestore(app);
+                status.innerHTML += '✅ Firestore initialized<br>';
                 
-                // Step 2: Update profile with name
-                await updateProfile(user, { displayName: name });
-                console.log("✅ Profile updated with name:", name);
+                // 测试匿名登录
+                status.innerHTML += 'Testing anonymous login...<br>';
+                const userCredential = await signInAnonymously(auth);
+                status.innerHTML += `✅ Logged in as: ${userCredential.user.uid}<br>`;
                 
-                // Step 3: Save user data to Firestore
-                console.log("Saving to Firestore...");
-                const userRef = doc(db, 'users', user.uid);
-                await setDoc(userRef, {
-                    name: name,
-                    email: email,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    uid: user.uid
+                // 测试写入 users 集合
+                status.innerHTML += 'Testing write to users collection...<br>';
+                const testUserRef = doc(db, 'users', 'test-' + Date.now());
+                await setDoc(testUserRef, {
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    timestamp: new Date().toISOString()
                 });
-                console.log("✅ Data saved to Firestore");
+                status.innerHTML += '✅ Write to users collection successful!<br>';
                 
-                // Step 4: Verify the data was saved
-                const verifyDoc = await getDoc(userRef);
-                if (verifyDoc.exists()) {
-                    console.log("✅ Verified: User document exists in Firestore", verifyDoc.data());
-                    successDiv.textContent = 'Account created successfully! Redirecting to dashboard...';
-                    successDiv.style.display = 'block';
-                    
-                    // Redirect after delay
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 2000);
-                } else {
-                    throw new Error("Firestore verification failed - document not found after save");
-                }
+                // 测试写入 test 集合
+                status.innerHTML += 'Testing write to test collection...<br>';
+                const testRef = await addDoc(collection(db, 'test'), {
+                    message: 'Hello',
+                    timestamp: new Date().toISOString()
+                });
+                status.innerHTML += `✅ Write to test collection successful! ID: ${testRef.id}<br>`;
+                
+                status.innerHTML += '<br><strong style="color:green">🎉 ALL TESTS PASSED! Firebase is working correctly!</strong>';
                 
             } catch (error) {
-                console.error('❌ Registration error:', error);
-                
-                let errorMessage = 'Registration failed';
-                switch(error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'Email already in use. Please login instead.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Invalid email format';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = 'Password is too weak';
-                        break;
-                    case 'auth/configuration-not-found':
-                        errorMessage = 'Firebase Authentication not enabled. Please enable Email/Password sign-in in Firebase Console.';
-                        break;
-                    default:
-                        errorMessage = error.message;
-                }
-                
-                errorDiv.textContent = errorMessage;
-                errorDiv.style.display = 'block';
-                
-                // Re-enable button
-                registerBtn.disabled = false;
-                registerBtn.innerHTML = 'Register';
+                status.innerHTML += `<br><strong style="color:red">❌ ERROR: ${error.message}</strong>`;
+                status.innerHTML += `<br>Error code: ${error.code}`;
+                console.error(error);
             }
-        });
+        };
     </script>
 </body>
 </html>
