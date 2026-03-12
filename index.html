@@ -47,6 +47,10 @@
             font-size: 14px;
         }
         
+        form {
+            width: 100%;
+        }
+        
         .form-group {
             margin-bottom: 15px;
         }
@@ -180,17 +184,19 @@
             <h2>🚗 Smart Vehicle Service</h2>
             <div class="subtitle">Login to your account</div>
             
-            <div class="form-group">
-                <input type="email" id="loginEmail" placeholder="Email address" value="test@user.com">
-            </div>
-            
-            <div class="form-group">
-                <input type="password" id="loginPassword" placeholder="Password" value="password123">
-            </div>
-            
-            <div class="error" id="loginError"></div>
-            
-            <button id="loginBtn" onclick="handleLogin()">Login</button>
+            <form id="loginForm" onsubmit="event.preventDefault(); handleLogin();">
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email address" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                
+                <div class="error" id="loginError"></div>
+                
+                <button type="submit" id="loginBtn">Login</button>
+            </form>
             
             <div class="toggle-link">
                 Don't have an account? <a onclick="showRegister()">Register here</a>
@@ -201,7 +207,7 @@
             </div>
             
             <div style="text-align: center; font-size: 13px; color: #5f6368;">
-                Demo: test@user.com / password123
+                Use any email to register
             </div>
         </div>
         
@@ -210,26 +216,28 @@
             <h2>🚗 Smart Vehicle Service</h2>
             <div class="subtitle">Create new account</div>
             
-            <div class="form-group">
-                <input type="text" id="registerName" placeholder="Full name">
-            </div>
-            
-            <div class="form-group">
-                <input type="email" id="registerEmail" placeholder="Email address">
-            </div>
-            
-            <div class="form-group">
-                <input type="password" id="registerPassword" placeholder="Password (min. 6 characters)">
-            </div>
-            
-            <div class="form-group">
-                <input type="password" id="registerConfirm" placeholder="Confirm password">
-            </div>
-            
-            <div class="error" id="registerError"></div>
-            <div class="success" id="registerSuccess"></div>
-            
-            <button id="registerBtn" onclick="handleRegister()">Register</button>
+            <form id="registerForm" onsubmit="event.preventDefault(); handleRegister();">
+                <div class="form-group">
+                    <input type="text" id="registerName" placeholder="Full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="email" id="registerEmail" placeholder="Email address" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" id="registerPassword" placeholder="Password (min. 6 characters)" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" id="registerConfirm" placeholder="Confirm password" required>
+                </div>
+                
+                <div class="error" id="registerError"></div>
+                <div class="success" id="registerSuccess"></div>
+                
+                <button type="submit" id="registerBtn">Register</button>
+            </form>
             
             <div class="toggle-link">
                 Already have an account? <a onclick="showLogin()">Login here</a>
@@ -237,27 +245,42 @@
         </div>
     </div>
     
-    <!-- Import Firebase Connection and Auth -->
+    <!-- Firebase SDK -->
     <script type="module">
-        // Import from firebase.js
-        import { auth, db } from './js/firebase.js';
-        import { 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            updateProfile,
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+        
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFuoNfz4LuXrPdhRRmYiYpe1jGKWdr1pY",
+            authDomain: "smart-vehicle-manage-system.firebaseapp.com",
+            projectId: "smart-vehicle-manage-system",
+            storageBucket: "smart-vehicle-manage-system.firebasestorage.app",
+            messagingSenderId: "284858789054",
+            appId: "1:284858789054:web:74d13ea854831fcd1802ef",
+            measurementId: "G-S6JM38PXW2"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        console.log("Firebase initialized. Auth ready:", !!auth);
         
         // Check if user is already logged in
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // User is logged in, redirect to dashboard
+                console.log("User already logged in:", user.email);
                 window.location.href = 'dashboard.html';
             }
         });
         
-        // Make functions global
+        // Handle Login
         window.handleLogin = async function() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -277,20 +300,24 @@
             loginBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
             
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                console.log("Attempting login with:", email);
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log("Login successful:", userCredential.user.email);
                 // Redirect happens in onAuthStateChanged
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('Login error:', error.code, error.message);
                 
                 let errorMessage = 'Login failed';
                 if (error.code === 'auth/user-not-found') {
-                    errorMessage = 'User not found';
+                    errorMessage = 'User not found. Please register first.';
                 } else if (error.code === 'auth/wrong-password') {
                     errorMessage = 'Wrong password';
                 } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Invalid email';
+                    errorMessage = 'Invalid email format';
                 } else if (error.code === 'auth/too-many-requests') {
                     errorMessage = 'Too many attempts. Try again later';
+                } else if (error.code === 'auth/configuration-not-found') {
+                    errorMessage = 'Firebase Authentication not enabled. Please enable Email/Password sign-in in Firebase Console.';
                 } else {
                     errorMessage = error.message;
                 }
@@ -304,6 +331,7 @@
             }
         };
         
+        // Handle Register
         window.handleRegister = async function() {
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
@@ -340,12 +368,16 @@
             registerBtn.innerHTML = '<span class="loading-spinner"></span> Creating account...';
             
             try {
+                console.log("Attempting to create user:", email);
+                
                 // Create user
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
+                console.log("User created:", user.uid);
                 
                 // Update profile with name
                 await updateProfile(user, { displayName: name });
+                console.log("Profile updated with name:", name);
                 
                 // Save user data to Firestore
                 await setDoc(doc(db, 'users', user.uid), {
@@ -354,6 +386,7 @@
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 });
+                console.log("User data saved to Firestore");
                 
                 successDiv.textContent = 'Account created successfully! Redirecting...';
                 successDiv.style.display = 'block';
@@ -364,15 +397,17 @@
                 }, 1500);
                 
             } catch (error) {
-                console.error('Registration error:', error);
+                console.error('Registration error:', error.code, error.message);
                 
                 let errorMessage = 'Registration failed';
                 if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = 'Email already in use';
+                    errorMessage = 'Email already in use. Please login instead.';
                 } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Invalid email';
+                    errorMessage = 'Invalid email format';
                 } else if (error.code === 'auth/weak-password') {
                     errorMessage = 'Password is too weak';
+                } else if (error.code === 'auth/configuration-not-found') {
+                    errorMessage = 'Firebase Authentication not enabled. Please enable Email/Password sign-in in Firebase Console.';
                 } else {
                     errorMessage = error.message;
                 }
