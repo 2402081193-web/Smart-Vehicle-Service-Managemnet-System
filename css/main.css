@@ -1,0 +1,312 @@
+/* ========================================
+   SMART VEHICLE SERVICE MANAGEMENT SYSTEM
+   MAIN STYLES - Black & Gold Theme
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* CSS Variables */
+:root {
+    /* Black & Gold Color Scheme */
+    --primary-dark: #0a0a0a;
+    --primary-black: #1a1a1a;
+    --primary-black-light: #2a2a2a;
+    --primary-gold: #ffd700;
+    --primary-gold-dark: #ccac00;
+    --primary-gold-light: #ffe44d;
+    --text-light: #ffffff;
+    --text-gray: #b0b0b0;
+    --text-dark: #1a1a1a;
+    --success: #00c853;
+    --error: #ff3b30;
+    --warning: #ff9500;
+    --info: #5856d6;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-black) 100%);
+    min-height: 100vh;
+    color: var(--text-light);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+h1 { font-size: 32px; }
+h2 { font-size: 28px; }
+h3 { font-size: 24px; }
+h4 { font-size: 20px; }
+
+/* Links */
+a {
+    text-decoration: none;
+    color: var(--primary-gold);
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--primary-gold-light);
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-gold { color: var(--primary-gold); }
+.text-gray { color: var(--text-gray); }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.hidden { display: none; }
+
+/* Buttons */
+.btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-gold) 0%, var(--primary-gold-dark) 100%);
+    color: var(--primary-dark);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--primary-gold);
+    color: var(--primary-gold);
+}
+
+.btn-secondary:hover {
+    background: var(--primary-gold);
+    color: var(--primary-dark);
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 22px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-gray);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-group i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-gold);
+    font-style: normal;
+    font-size: 18px;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    background: var(--primary-dark);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-light);
+    transition: all 0.3s;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+input::placeholder {
+    color: var(--text-gray);
+}
+
+/* Messages */
+.message {
+    padding: 12px 15px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    font-size: 14px;
+    display: none;
+}
+
+.message-success {
+    background: rgba(0, 200, 83, 0.2);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.message-error {
+    background: rgba(255, 59, 48, 0.2);
+    color: var(--error);
+    border: 1px solid var(--error);
+}
+
+.message-info {
+    background: rgba(88, 86, 214, 0.2);
+    color: var(--info);
+    border: 1px solid var(--info);
+}
+
+/* Loading Spinner */
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--primary-dark);
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.spinner-large {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 215, 0, 0.2);
+    border-top: 3px solid var(--primary-gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Password Strength */
+.password-strength {
+    margin-top: 8px;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: var(--primary-dark);
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+/* Loading & Empty States */
+.loading-state {
+    text-align: center;
+    padding: 50px;
+    color: var(--text-gray);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    color: var(--text-gray);
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+/* Toggle Link */
+.toggle-link {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.toggle-link a {
+    color: var(--primary-gold);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: rgba(255, 149, 0, 0.2);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+}
+
+.status-approved {
+    background: rgba(0, 200, 83, 0.2);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.status-completed {
+    background: rgba(88, 86, 214, 0.2);
+    color: var(--info);
+    border: 1px solid var(--info);
+}
