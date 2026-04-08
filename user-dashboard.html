@@ -82,6 +82,7 @@
                     <div id="appointmentsEmpty" class="empty-state" style="display: none;">
                         <div class="empty-state-icon">📅</div>
                         <p>No appointments yet</p>
+                        <p style="font-size: 13px; margin-top: 5px;">Book your first service to get started</p>
                     </div>
                     <div id="appointmentsTable" style="display: none;">
                         <table>
@@ -97,8 +98,15 @@
     <script type="module">
         import { auth, db, onAuthStateChanged, signOut, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from './js/firebase-config.js';
 
+        // 检查登录状态 - 如果没有登录就跳转回登录页
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = 'index.html'; return; }
+            if (!user) { 
+                console.log("No user logged in, redirecting to login...");
+                window.location.href = 'index.html'; 
+                return; 
+            }
+            
+            console.log("User logged in:", user.email);
             
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             const userData = userDoc.data();
@@ -111,39 +119,68 @@
         });
 
         async function loadStats(userId) {
-            const vehicles = await getDocs(query(collection(db, 'vehicles'), where('userId', '==', userId)));
-            const appointments = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), where('status', 'in', ['pending', 'approved'])));
-            const completed = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), where('status', '==', 'completed')));
-            const payments = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId), where('status', '==', 'completed')));
-            let total = 0; payments.forEach(d => total += d.data().amount || 0);
-            
-            document.getElementById('vehicleCount').textContent = vehicles.size;
-            document.getElementById('appointmentCount').textContent = appointments.size;
-            document.getElementById('serviceCount').textContent = completed.size;
-            document.getElementById('totalSpent').textContent = `$${total}`;
+            try {
+                const vehicles = await getDocs(query(collection(db, 'vehicles'), where('userId', '==', userId)));
+                const appointments = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), where('status', 'in', ['pending', 'approved'])));
+                const completed = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), where('status', '==', 'completed')));
+                const payments = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId), where('status', '==', 'completed')));
+                let total = 0; 
+                payments.forEach(d => total += d.data().amount || 0);
+                
+                document.getElementById('vehicleCount').textContent = vehicles.size;
+                document.getElementById('appointmentCount').textContent = appointments.size;
+                document.getElementById('serviceCount').textContent = completed.size;
+                document.getElementById('totalSpent').textContent = `$${total}`;
+            } catch (error) {
+                console.error("Error loading stats:", error);
+            }
         }
 
         async function loadAppointments(userId) {
-            const snapshot = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), orderBy('createdAt', 'desc'), limit(5)));
-            document.getElementById('appointmentsLoading').style.display = 'none';
-            
-            if (snapshot.empty) { document.getElementById('appointmentsEmpty').style.display = 'block'; return; }
-            
-            document.getElementById('appointmentsTable').style.display = 'block';
-            let html = '';
-            for (const docSnap of snapshot.docs) {
-                const apt = docSnap.data();
-                let vehicle = 'Unknown';
-                if (apt.vehicleId) {
-                    const vDoc = await getDoc(doc(db, 'vehicles', apt.vehicleId));
-                    if (vDoc.exists()) vehicle = `${vDoc.data().make || ''} ${vDoc.data().model || ''}`.trim() || 'Vehicle';
+            try {
+                const snapshot = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), orderBy('createdAt', 'desc'), limit(5)));
+                document.getElementById('appointmentsLoading').style.display = 'none';
+                
+                if (snapshot.empty) { 
+                    document.getElementById('appointmentsEmpty').style.display = 'block'; 
+                    return; 
                 }
-                html += `<tr><td>${apt.date || 'N/A'}</td><td>${apt.serviceType || 'General'}</td><td>${vehicle}</td><td><span class="status-badge status-${apt.status || 'pending'}">${apt.status || 'pending'}</span></td></tr>`;
+                
+                document.getElementById('appointmentsTable').style.display = 'block';
+                let html = '';
+                for (const docSnap of snapshot.docs) {
+                    const apt = docSnap.data();
+                    let vehicle = 'Unknown';
+                    if (apt.vehicleId) {
+                        try {
+                            const vDoc = await getDoc(doc(db, 'vehicles', apt.vehicleId));
+                            if (vDoc.exists()) vehicle = `${vDoc.data().make || ''} ${vDoc.data().model || ''}`.trim() || 'Vehicle';
+                        } catch(e) { console.error(e); }
+                    }
+                    html += `<tr>
+                        <td>${apt.date || 'N/A'}</td>
+                        <td>${apt.serviceType || 'General'}</td>
+                        <td>${vehicle}</td>
+                        <td><span class="status-badge status-${apt.status || 'pending'}">${apt.status || 'pending'}</span></td>
+                    </tr>`;
+                }
+                document.getElementById('appointmentsList').innerHTML = html;
+            } catch (error) {
+                console.error("Error loading appointments:", error);
+                document.getElementById('appointmentsLoading').innerHTML = '<p>Error loading appointments</p>';
             }
-            document.getElementById('appointmentsList').innerHTML = html;
         }
 
-        window.logout = async () => { await signOut(auth); window.location.href = 'index.html'; };
+        window.logout = async () => { 
+            try {
+                await signOut(auth);
+                console.log("Logged out successfully");
+                window.location.href = 'index.html'; 
+            } catch (error) {
+                console.error("Logout error:", error);
+                alert("Error logging out");
+            }
+        };
     </script>
 </body>
 </html>
