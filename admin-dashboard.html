@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo">👑 Smart<span>Car</span> Service <span>Admin</span></div>
+        <div class="logo"> Smart<span>Car</span> Service <span>Admin</span> Panel </div>
         <div class="user-info">
             <span class="user-name" id="adminName">Loading...</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
@@ -319,12 +319,12 @@
                         <td><div class="action-buttons">
                             ${user.role !== 'admin' && !isCurrentUser ? `
                                 <button class="action-btn" onclick="promoteToAdmin('${docSnap.id}')" style="background: var(--primary-gold); color: var(--primary-dark);">
-                                    👑 Make Admin
+                                     Make Admin
                                 </button>
                             ` : ''}
                             ${user.role === 'admin' && !isCurrentUser ? `
                                 <button class="action-btn" onclick="removeAdmin('${docSnap.id}')" style="background: var(--error); color: white;">
-                                    🔻 Remove Admin
+                                     Remove Admin
                                 </button>
                             ` : ''}
                             ${user.isActive !== false && !isCurrentUser ? `
