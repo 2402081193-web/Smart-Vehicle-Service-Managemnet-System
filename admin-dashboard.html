@@ -22,7 +22,6 @@
                 <p>System overview & management console</p>
             </div>
 
-            <!-- Admin Stats -->
             <div class="admin-stats">
                 <div class="admin-stat-card">
                     <div class="admin-stat-number" id="totalUsers">0</div>
@@ -50,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- Admin Actions -->
             <div class="dashboard-content">
                 <h2>Admin Actions</h2>
                 <p>Manage system resources and monitor operations</p>
@@ -79,7 +77,6 @@
                 </div>
             </div>
 
-            <!-- Recent Bookings Table -->
             <div class="recent-section">
                 <div class="section-header">
                     <h3>Recent Bookings</h3>
@@ -89,6 +86,10 @@
                     <div id="bookingsLoading" class="loading-state">
                         <div class="spinner-large"></div>
                         <p>Loading bookings...</p>
+                    </div>
+                    <div id="bookingsEmpty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📅</div>
+                        <p>No bookings found</p>
                     </div>
                     <div id="bookingsTable" style="display: none;">
                         <table>
@@ -104,11 +105,11 @@
     </div>
 
     <!-- Manage Users Modal -->
-    <div id="usersModal" class="modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
-        <div style="background:var(--primary-black-light); border-radius:20px; width:90%; max-width:1000px; max-height:80vh; overflow:auto; padding:25px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="color:var(--primary-gold)">Manage Users</h2>
-                <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
+    <div id="usersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Users</h2>
+                <button class="close-modal" onclick="closeModal()">✕</button>
             </div>
             <div class="table-wrapper">
                 <table style="width:100%">
@@ -120,106 +121,217 @@
     </div>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, signOut, collection, getDocs, query, where, orderBy, limit, doc, updateDoc } from './js/firebase-config.js';
+        import { 
+            auth, db, 
+            onAuthStateChanged, 
+            signOut, 
+            collection, 
+            getDocs, 
+            query, 
+            where, 
+            orderBy, 
+            limit, 
+            doc, 
+            updateDoc, 
+            getDoc 
+        } from './js/firebase-config.js';
 
+        let isCheckingAuth = false;
+
+        // 检查 Admin 登录状态 - 使用标志位防止重复检查
         onAuthStateChanged(auth, async (user) => {
-            if (!user || user.email !== 'admin@system.com') { window.location.href = 'admin-login.html'; return; }
-            document.getElementById('adminName').textContent = 'Admin';
-            document.getElementById('welcomeAdmin').textContent = 'Admin';
-            await loadAdminStats();
-            await loadRecentBookings();
+            if (isCheckingAuth) return;
+            isCheckingAuth = true;
+            
+            try {
+                if (!user) { 
+                    console.log("No user, redirecting to admin login...");
+                    window.location.href = 'admin-login.html'; 
+                    return; 
+                }
+                
+                console.log("User found:", user.email);
+                
+                // 验证是否是 admin
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                const userData = userDoc.data();
+                
+                if (userData?.role !== 'admin' && user.email !== 'admin@system.com') {
+                    console.log("Not admin, redirecting...");
+                    alert('Access denied. Admin only.');
+                    await signOut(auth);
+                    window.location.href = 'admin-login.html';
+                    return;
+                }
+                
+                // 加载 dashboard 数据
+                document.getElementById('adminName').textContent = 'Admin';
+                document.getElementById('welcomeAdmin').textContent = 'Admin';
+                await loadAdminStats();
+                await loadRecentBookings();
+                
+            } catch (error) {
+                console.error("Auth check error:", error);
+            } finally {
+                isCheckingAuth = false;
+            }
         });
 
         async function loadAdminStats() {
-            const users = await getDocs(collection(db, 'users'));
-            const vehicles = await getDocs(collection(db, 'vehicles'));
-            const bookings = await getDocs(collection(db, 'appointments'));
-            const pending = await getDocs(query(collection(db, 'appointments'), where('status', '==', 'pending')));
-            const payments = await getDocs(collection(db, 'payments'));
-            let totalRevenue = 0, monthlyRevenue = 0;
-            const currentMonth = new Date().getMonth();
-            payments.forEach(d => {
-                const amount = d.data().amount || 0;
-                totalRevenue += amount;
-                if (new Date(d.data().createdAt).getMonth() === currentMonth) monthlyRevenue += amount;
-            });
-            
-            document.getElementById('totalUsers').textContent = users.size;
-            document.getElementById('totalVehicles').textContent = vehicles.size;
-            document.getElementById('totalBookings').textContent = bookings.size;
-            document.getElementById('pendingBookings').textContent = pending.size;
-            document.getElementById('totalRevenue').textContent = `$${totalRevenue}`;
-            document.getElementById('monthlyRevenue').textContent = `$${monthlyRevenue}`;
+            try {
+                const users = await getDocs(collection(db, 'users'));
+                const vehicles = await getDocs(collection(db, 'vehicles'));
+                const bookings = await getDocs(collection(db, 'appointments'));
+                const pending = await getDocs(query(collection(db, 'appointments'), where('status', '==', 'pending')));
+                const payments = await getDocs(collection(db, 'payments'));
+                let totalRevenue = 0, monthlyRevenue = 0;
+                const currentMonth = new Date().getMonth();
+                const currentYear = new Date().getFullYear();
+                
+                payments.forEach(d => {
+                    const amount = d.data().amount || 0;
+                    totalRevenue += amount;
+                    const date = new Date(d.data().createdAt);
+                    if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                        monthlyRevenue += amount;
+                    }
+                });
+                
+                document.getElementById('totalUsers').textContent = users.size;
+                document.getElementById('totalVehicles').textContent = vehicles.size;
+                document.getElementById('totalBookings').textContent = bookings.size;
+                document.getElementById('pendingBookings').textContent = pending.size;
+                document.getElementById('totalRevenue').textContent = `$${totalRevenue}`;
+                document.getElementById('monthlyRevenue').textContent = `$${monthlyRevenue}`;
+            } catch (error) {
+                console.error("Error loading stats:", error);
+            }
         }
 
         async function loadRecentBookings() {
-            const snapshot = await getDocs(query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(10)));
-            document.getElementById('bookingsLoading').style.display = 'none';
-            if (snapshot.empty) { document.getElementById('bookingsTable').innerHTML = '<div class="empty-state">No bookings found</div>'; return; }
-            
-            document.getElementById('bookingsTable').style.display = 'block';
-            let html = '';
-            for (const docSnap of snapshot.docs) {
-                const booking = docSnap.data();
-                const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', booking.userId)));
-                let customer = 'Unknown';
-                userDoc.forEach(u => customer = u.data().name);
-                let vehicle = 'Unknown';
-                if (booking.vehicleId) {
-                    const vDoc = await getDocs(query(collection(db, 'vehicles'), where('userId', '==', booking.userId)));
-                    vDoc.forEach(v => vehicle = `${v.data().make || ''} ${v.data().model || ''}`.trim() || 'Vehicle');
+            try {
+                const snapshot = await getDocs(query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(10)));
+                document.getElementById('bookingsLoading').style.display = 'none';
+                
+                if (snapshot.empty) { 
+                    document.getElementById('bookingsEmpty').style.display = 'block';
+                    return; 
                 }
-                html += `<tr>
-                    <td>${booking.date || 'N/A'}</td>
-                    <td>${customer}</td>
-                    <td>${booking.serviceType || 'General'}</td>
-                    <td>${vehicle}</td>
-                    <td><span class="status-badge status-${booking.status || 'pending'}">${booking.status || 'pending'}</span></td>
-                    <td><div class="action-buttons"><button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'approved')">Approve</button><button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'cancelled')">Cancel</button></div></td>
-                </tr>`;
+                
+                document.getElementById('bookingsTable').style.display = 'block';
+                let html = '';
+                for (const docSnap of snapshot.docs) {
+                    const booking = docSnap.data();
+                    
+                    let customer = 'Unknown';
+                    try {
+                        const userDoc = await getDoc(doc(db, 'users', booking.userId));
+                        if (userDoc.exists()) customer = userDoc.data().name || 'User';
+                    } catch(e) { console.error(e); }
+                    
+                    let vehicle = 'Unknown';
+                    if (booking.vehicleId) {
+                        try {
+                            const vDoc = await getDoc(doc(db, 'vehicles', booking.vehicleId));
+                            if (vDoc.exists()) vehicle = `${vDoc.data().make || ''} ${vDoc.data().model || ''}`.trim() || 'Vehicle';
+                        } catch(e) { console.error(e); }
+                    }
+                    
+                    html += `<tr>
+                        <td>${booking.date || 'N/A'}</td>
+                        <td>${customer}</td>
+                        <td>${booking.serviceType || 'General'}</td>
+                        <td>${vehicle}</td>
+                        <td><span class="status-badge status-${booking.status || 'pending'}">${booking.status || 'pending'}</span></td>
+                        <td><div class="action-buttons">
+                            <button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'approved')">Approve</button>
+                            <button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'cancelled')">Cancel</button>
+                        </div></td>
+                    </tr>`;
+                }
+                document.getElementById('bookingsList').innerHTML = html;
+            } catch (error) {
+                console.error("Error loading bookings:", error);
+                document.getElementById('bookingsLoading').innerHTML = '<p>Error loading bookings</p>';
             }
-            document.getElementById('bookingsList').innerHTML = html;
         }
 
         window.updateBookingStatus = async (id, status) => {
-            await updateDoc(doc(db, 'appointments', id), { status, updatedAt: new Date().toISOString() });
-            alert(`Booking ${status}!`);
-            location.reload();
+            try {
+                await updateDoc(doc(db, 'appointments', id), { status, updatedAt: new Date().toISOString() });
+                alert(`Booking ${status}!`);
+                loadRecentBookings();
+                loadAdminStats();
+            } catch (error) {
+                console.error("Error updating status:", error);
+                alert("Error updating status");
+            }
         };
 
         window.showManageUsers = async () => {
-            const usersSnapshot = await getDocs(collection(db, 'users'));
-            let html = '';
-            usersSnapshot.forEach(docSnap => {
-                const user = docSnap.data();
-                html += `<tr>
-                    <td>${user.name || 'N/A'}</td>
-                    <td>${user.email}</td>
-                    <td>${user.role || 'user'}</td>
-                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td><span class="status-badge ${user.isActive !== false ? 'status-approved' : 'status-pending'}">${user.isActive !== false ? 'Active' : 'Disabled'}</span></td>
-                    <td><div class="action-buttons"><button class="action-btn" onclick="toggleUserStatus('${docSnap.id}')">Toggle Status</button></div></td>
-                </tr>`;
-            });
-            document.getElementById('usersList').innerHTML = html;
-            document.getElementById('usersModal').style.display = 'flex';
+            try {
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let html = '';
+                usersSnapshot.forEach(docSnap => {
+                    const user = docSnap.data();
+                    html += `<tr>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role || 'user'}</td>
+                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
+                        <td><span class="status-badge ${user.isActive !== false ? 'status-approved' : 'status-pending'}">${user.isActive !== false ? 'Active' : 'Disabled'}</span></td>
+                        <td><div class="action-buttons">
+                            <button class="action-btn" onclick="toggleUserStatus('${docSnap.id}')">Toggle Status</button>
+                        </div></td>
+                    </tr>`;
+                });
+                document.getElementById('usersList').innerHTML = html;
+                document.getElementById('usersModal').classList.add('active');
+            } catch (error) {
+                console.error("Error loading users:", error);
+                alert("Error loading users");
+            }
         };
 
         window.toggleUserStatus = async (userId) => {
-            const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', userId)));
-            userDoc.forEach(async d => {
-                const current = d.data().isActive !== false;
-                await updateDoc(doc(db, 'users', d.id), { isActive: !current });
-            });
-            alert('User status updated!');
-            showManageUsers();
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                const current = userDoc.data().isActive !== false;
+                await updateDoc(doc(db, 'users', userId), { isActive: !current });
+                alert(`User ${!current ? 'activated' : 'disabled'}!`);
+                showManageUsers();
+                loadAdminStats();
+            } catch (error) {
+                console.error("Error toggling status:", error);
+                alert("Error updating status");
+            }
         };
 
-        window.showManageBookings = () => { alert('📅 Booking Management - Full CRUD operations available'); };
-        window.showRevenueReport = () => { alert('💰 Revenue Reports - Detailed analytics coming soon'); };
-        window.showSystemSettings = () => { alert('⚙️ System Settings - Configure service prices'); };
-        window.closeModal = () => { document.getElementById('usersModal').style.display = 'none'; };
-        window.logout = async () => { await signOut(auth); window.location.href = 'admin-login.html'; };
+        window.showManageBookings = () => { 
+            loadRecentBookings(); 
+            alert('📅 Booking Management - Scroll down to see all bookings'); 
+        };
+        
+        window.showRevenueReport = () => { 
+            alert('💰 Revenue Reports - Detailed analytics coming soon'); 
+        };
+        
+        window.showSystemSettings = () => { 
+            alert('⚙️ System Settings - Configure service prices'); 
+        };
+        
+        window.closeModal = () => { 
+            document.getElementById('usersModal').classList.remove('active'); 
+        };
+        
+        window.logout = async () => { 
+            try {
+                await signOut(auth); 
+                window.location.href = 'admin-login.html'; 
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        };
     </script>
 </body>
 </html>
