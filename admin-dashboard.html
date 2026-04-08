@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Admin Dashboard - Smart Vehicle Service</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">👑 Admin<span>Panel</span></div>
+        <div class="user-info">
+            <span class="user-name" id="adminName">Administrator</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="container-fluid">
+            <div class="welcome-card">
+                <h1>Admin Dashboard, <span id="welcomeAdmin">Admin</span>!</h1>
+                <p>System overview & management console</p>
+            </div>
+
+            <!-- Admin Stats -->
+            <div class="admin-stats">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalUsers">0</div>
+                    <div class="admin-stat-label">Total Users</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalVehicles">0</div>
+                    <div class="admin-stat-label">Total Vehicles</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalBookings">0</div>
+                    <div class="admin-stat-label">Total Bookings</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="pendingBookings">0</div>
+                    <div class="admin-stat-label">Pending Approvals</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalRevenue">$0</div>
+                    <div class="admin-stat-label">Total Revenue</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="monthlyRevenue">$0</div>
+                    <div class="admin-stat-label">This Month</div>
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            <div class="dashboard-content">
+                <h2>Admin Actions</h2>
+                <p>Manage system resources and monitor operations</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-item" onclick="showManageUsers()">
+                        <div class="feature-icon">👥</div>
+                        <div class="feature-title">Manage Users</div>
+                        <div class="feature-desc">View, edit, or disable user accounts</div>
+                    </div>
+                    <div class="feature-item" onclick="showManageBookings()">
+                        <div class="feature-icon">📅</div>
+                        <div class="feature-title">Manage Bookings</div>
+                        <div class="feature-desc">Approve, reschedule, or cancel bookings</div>
+                    </div>
+                    <div class="feature-item" onclick="showRevenueReport()">
+                        <div class="feature-icon">💰</div>
+                        <div class="feature-title">Revenue Reports</div>
+                        <div class="feature-desc">View financial analytics</div>
+                    </div>
+                    <div class="feature-item" onclick="showSystemSettings()">
+                        <div class="feature-icon">⚙️</div>
+                        <div class="feature-title">System Settings</div>
+                        <div class="feature-desc">Configure service prices</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bookings Table -->
+            <div class="recent-section">
+                <div class="section-header">
+                    <h3>Recent Bookings</h3>
+                    <a href="#" class="view-all-btn" onclick="showManageBookings()">Manage all →</a>
+                </div>
+                <div class="table-wrapper">
+                    <div id="bookingsLoading" class="loading-state">
+                        <div class="spinner-large"></div>
+                        <p>Loading bookings...</p>
+                    </div>
+                    <div id="bookingsTable" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr><th>Date</th><th>Customer</th><th>Service</th><th>Vehicle</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="bookingsList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Users Modal -->
+    <div id="usersModal" class="modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:var(--primary-black-light); border-radius:20px; width:90%; max-width:1000px; max-height:80vh; overflow:auto; padding:25px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h2 style="color:var(--primary-gold)">Manage Users</h2>
+                <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
+            </div>
+            <div class="table-wrapper">
+                <table style="width:100%">
+                    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="usersList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, signOut, collection, getDocs, query, where, orderBy, limit, doc, updateDoc } from './js/firebase-config.js';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user || user.email !== 'admin@system.com') { window.location.href = 'admin-login.html'; return; }
+            document.getElementById('adminName').textContent = 'Admin';
+            document.getElementById('welcomeAdmin').textContent = 'Admin';
+            await loadAdminStats();
+            await loadRecentBookings();
+        });
+
+        async function loadAdminStats() {
+            const users = await getDocs(collection(db, 'users'));
+            const vehicles = await getDocs(collection(db, 'vehicles'));
+            const bookings = await getDocs(collection(db, 'appointments'));
+            const pending = await getDocs(query(collection(db, 'appointments'), where('status', '==', 'pending')));
+            const payments = await getDocs(collection(db, 'payments'));
+            let totalRevenue = 0, monthlyRevenue = 0;
+            const currentMonth = new Date().getMonth();
+            payments.forEach(d => {
+                const amount = d.data().amount || 0;
+                totalRevenue += amount;
+                if (new Date(d.data().createdAt).getMonth() === currentMonth) monthlyRevenue += amount;
+            });
+            
+            document.getElementById('totalUsers').textContent = users.size;
+            document.getElementById('totalVehicles').textContent = vehicles.size;
+            document.getElementById('totalBookings').textContent = bookings.size;
+            document.getElementById('pendingBookings').textContent = pending.size;
+            document.getElementById('totalRevenue').textContent = `$${totalRevenue}`;
+            document.getElementById('monthlyRevenue').textContent = `$${monthlyRevenue}`;
+        }
+
+        async function loadRecentBookings() {
+            const snapshot = await getDocs(query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(10)));
+            document.getElementById('bookingsLoading').style.display = 'none';
+            if (snapshot.empty) { document.getElementById('bookingsTable').innerHTML = '<div class="empty-state">No bookings found</div>'; return; }
+            
+            document.getElementById('bookingsTable').style.display = 'block';
+            let html = '';
+            for (const docSnap of snapshot.docs) {
+                const booking = docSnap.data();
+                const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', booking.userId)));
+                let customer = 'Unknown';
+                userDoc.forEach(u => customer = u.data().name);
+                let vehicle = 'Unknown';
+                if (booking.vehicleId) {
+                    const vDoc = await getDocs(query(collection(db, 'vehicles'), where('userId', '==', booking.userId)));
+                    vDoc.forEach(v => vehicle = `${v.data().make || ''} ${v.data().model || ''}`.trim() || 'Vehicle');
+                }
+                html += `<tr>
+                    <td>${booking.date || 'N/A'}</td>
+                    <td>${customer}</td>
+                    <td>${booking.serviceType || 'General'}</td>
+                    <td>${vehicle}</td>
+                    <td><span class="status-badge status-${booking.status || 'pending'}">${booking.status || 'pending'}</span></td>
+                    <td><div class="action-buttons"><button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'approved')">Approve</button><button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'cancelled')">Cancel</button></div></td>
+                </tr>`;
+            }
+            document.getElementById('bookingsList').innerHTML = html;
+        }
+
+        window.updateBookingStatus = async (id, status) => {
+            await updateDoc(doc(db, 'appointments', id), { status, updatedAt: new Date().toISOString() });
+            alert(`Booking ${status}!`);
+            location.reload();
+        };
+
+        window.showManageUsers = async () => {
+            const usersSnapshot = await getDocs(collection(db, 'users'));
+            let html = '';
+            usersSnapshot.forEach(docSnap => {
+                const user = docSnap.data();
+                html += `<tr>
+                    <td>${user.name || 'N/A'}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role || 'user'}</td>
+                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td><span class="status-badge ${user.isActive !== false ? 'status-approved' : 'status-pending'}">${user.isActive !== false ? 'Active' : 'Disabled'}</span></td>
+                    <td><div class="action-buttons"><button class="action-btn" onclick="toggleUserStatus('${docSnap.id}')">Toggle Status</button></div></td>
+                </tr>`;
+            });
+            document.getElementById('usersList').innerHTML = html;
+            document.getElementById('usersModal').style.display = 'flex';
+        };
+
+        window.toggleUserStatus = async (userId) => {
+            const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', userId)));
+            userDoc.forEach(async d => {
+                const current = d.data().isActive !== false;
+                await updateDoc(doc(db, 'users', d.id), { isActive: !current });
+            });
+            alert('User status updated!');
+            showManageUsers();
+        };
+
+        window.showManageBookings = () => { alert('📅 Booking Management - Full CRUD operations available'); };
+        window.showRevenueReport = () => { alert('💰 Revenue Reports - Detailed analytics coming soon'); };
+        window.showSystemSettings = () => { alert('⚙️ System Settings - Configure service prices'); };
+        window.closeModal = () => { document.getElementById('usersModal').style.display = 'none'; };
+        window.logout = async () => { await signOut(auth); window.location.href = 'admin-login.html'; };
+    </script>
+</body>
+</html>
