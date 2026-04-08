@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>User Dashboard - Smart Vehicle Service</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <div class="navbar">
@@ -82,7 +84,6 @@
                     <div id="appointmentsEmpty" class="empty-state" style="display: none;">
                         <div class="empty-state-icon">📅</div>
                         <p>No appointments yet</p>
-                        <p style="font-size: 13px; margin-top: 5px;">Book your first service to get started</p>
                     </div>
                     <div id="appointmentsTable" style="display: none;">
                         <table>
@@ -96,26 +97,45 @@
     </div>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, signOut, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from './js/firebase-config.js';
+        import { 
+            auth, db, 
+            onAuthStateChanged, 
+            signOut, 
+            doc, 
+            getDoc, 
+            collection, 
+            query, 
+            where, 
+            getDocs, 
+            orderBy, 
+            limit 
+        } from './js/firebase-config.js';
 
-        // 检查登录状态 - 如果没有登录就跳转回登录页
+        let isCheckingAuth = false;
+
         onAuthStateChanged(auth, async (user) => {
-            if (!user) { 
-                console.log("No user logged in, redirecting to login...");
-                window.location.href = 'index.html'; 
-                return; 
+            if (isCheckingAuth) return;
+            isCheckingAuth = true;
+            
+            try {
+                if (!user) { 
+                    window.location.href = 'index.html'; 
+                    return; 
+                }
+                
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                const userData = userDoc.data();
+                const name = userData?.name || user.displayName || 'User';
+                document.getElementById('userName').textContent = name;
+                document.getElementById('welcomeName').textContent = name.split(' ')[0];
+                
+                await loadStats(user.uid);
+                await loadAppointments(user.uid);
+            } catch (error) {
+                console.error("Auth check error:", error);
+            } finally {
+                isCheckingAuth = false;
             }
-            
-            console.log("User logged in:", user.email);
-            
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            const userData = userDoc.data();
-            const name = userData?.name || user.displayName || 'User';
-            document.getElementById('userName').textContent = name;
-            document.getElementById('welcomeName').textContent = name.split(' ')[0];
-            
-            await loadStats(user.uid);
-            await loadAppointments(user.uid);
         });
 
         async function loadStats(userId) {
@@ -174,7 +194,6 @@
         window.logout = async () => { 
             try {
                 await signOut(auth);
-                console.log("Logged out successfully");
                 window.location.href = 'index.html'; 
             } catch (error) {
                 console.error("Logout error:", error);
