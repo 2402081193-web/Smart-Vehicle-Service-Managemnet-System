@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Admin Dashboard - Smart Vehicle Service</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <div class="navbar">
@@ -138,33 +141,26 @@
 
         let isCheckingAuth = false;
 
-        // 检查 Admin 登录状态 - 使用标志位防止重复检查
         onAuthStateChanged(auth, async (user) => {
             if (isCheckingAuth) return;
             isCheckingAuth = true;
             
             try {
                 if (!user) { 
-                    console.log("No user, redirecting to admin login...");
                     window.location.href = 'admin-login.html'; 
                     return; 
                 }
                 
-                console.log("User found:", user.email);
-                
-                // 验证是否是 admin
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 const userData = userDoc.data();
                 
                 if (userData?.role !== 'admin' && user.email !== 'admin@system.com') {
-                    console.log("Not admin, redirecting...");
                     alert('Access denied. Admin only.');
                     await signOut(auth);
                     window.location.href = 'admin-login.html';
                     return;
                 }
                 
-                // 加载 dashboard 数据
                 document.getElementById('adminName').textContent = 'Admin';
                 document.getElementById('welcomeAdmin').textContent = 'Admin';
                 await loadAdminStats();
