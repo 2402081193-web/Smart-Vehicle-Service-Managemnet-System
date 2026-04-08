@@ -11,9 +11,9 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo"><span>Smart</span>Car</span>Service</span>Admin</span>Panel</span></div>
+        <div class="logo">👑 Smart<span>Car</span> Service <span>Admin</span></div>
         <div class="user-info">
-            <span class="user-name" id="adminName">Administrator</span>
+            <span class="user-name" id="adminName">Loading...</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -21,7 +21,7 @@
     <div class="dashboard-container">
         <div class="container-fluid">
             <div class="welcome-card">
-                <h1>Admin Dashboard, <span id="welcomeAdmin">Admin</span>!</h1>
+                <h1>Welcome back, <span id="welcomeAdmin">Admin</span>!</h1>
                 <p>System overview & management console</p>
             </div>
 
@@ -120,6 +120,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Phone</th>
                             <th>Role</th>
                             <th>Joined</th>
                             <th>Status</th>
@@ -150,6 +151,7 @@
 
         let isCheckingAuth = false;
         let currentAdminId = null;
+        let currentAdminData = null;
 
         onAuthStateChanged(auth, async (user) => {
             if (isCheckingAuth) return;
@@ -165,6 +167,7 @@
                 
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 const userData = userDoc.data();
+                currentAdminData = userData;
                 
                 // 检查是否是 admin
                 if (userData?.role !== 'admin' && user.email !== 'admin@system.com') {
@@ -174,8 +177,11 @@
                     return;
                 }
                 
-                document.getElementById('adminName').textContent = 'Admin';
-                document.getElementById('welcomeAdmin').textContent = 'Admin';
+                // 显示真实的 Admin 名字（从数据库读取）
+                const adminName = userData?.name || user.displayName || 'Administrator';
+                document.getElementById('adminName').textContent = adminName;
+                document.getElementById('welcomeAdmin').textContent = adminName;
+                
                 await loadAdminStats();
                 await loadRecentBookings();
                 
@@ -210,8 +216,9 @@
                 document.getElementById('totalVehicles').textContent = vehicles.size;
                 document.getElementById('totalBookings').textContent = bookings.size;
                 document.getElementById('pendingBookings').textContent = pending.size;
-                document.getElementById('totalRevenue').textContent = `$${totalRevenue}`;
-                document.getElementById('monthlyRevenue').textContent = `$${monthlyRevenue}`;
+                document.getElementById('totalRevenue').textContent = `RM${totalRevenue.toFixed(2)}`;
+                document.getElementById('monthlyRevenue').textContent = `RM${monthlyRevenue.toFixed(2)}`;
+                
             } catch (error) {
                 console.error("Error loading stats:", error);
             }
@@ -219,7 +226,11 @@
 
         async function loadRecentBookings() {
             try {
-                const snapshot = await getDocs(query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(10)));
+                // 不使用 orderBy 避免需要索引
+                const snapshot = await getDocs(query(
+                    collection(db, 'appointments')
+                ));
+                
                 document.getElementById('bookingsLoading').style.display = 'none';
                 
                 if (snapshot.empty) { 
@@ -227,9 +238,18 @@
                     return; 
                 }
                 
+                // 在 JavaScript 中排序
+                const bookings = snapshot.docs
+                    .sort((a, b) => {
+                        const dateA = a.data().createdAt ? new Date(a.data().createdAt) : new Date(0);
+                        const dateB = b.data().createdAt ? new Date(b.data().createdAt) : new Date(0);
+                        return dateB - dateA;
+                    })
+                    .slice(0, 10);
+                
                 document.getElementById('bookingsTable').style.display = 'block';
                 let html = '';
-                for (const docSnap of snapshot.docs) {
+                for (const docSnap of bookings) {
                     const booking = docSnap.data();
                     
                     let customer = 'Unknown';
@@ -286,19 +306,20 @@
                     const isCurrentUser = docSnap.id === currentAdminId;
                     
                     html += `<tr>
-                        <td>${user.name || 'N/A'}</td>
-                        <td>${user.email}</td>
+                        <td>${user.name || 'N/A'}</span>
+                        <td>${user.email}</span>
+                        <td>${user.phone || 'Not provided'}</span>
                         <td>
                             <span class="status-badge ${user.role === 'admin' ? 'status-approved' : 'status-pending'}">
                                 ${user.role === 'admin' ? '👑 Admin' : '👤 User'}
                             </span>
-                        </td>
-                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
+                        </span>
+                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</span>
                         <td>
                             <span class="status-badge ${user.isActive !== false ? 'status-approved' : 'status-pending'}">
                                 ${user.isActive !== false ? '🟢 Active' : '🔴 Disabled'}
                             </span>
-                        </td>
+                        </span>
                         <td><div class="action-buttons">
                             ${user.role !== 'admin' && !isCurrentUser ? `
                                 <button class="action-btn" onclick="promoteToAdmin('${docSnap.id}')" style="background: var(--primary-gold); color: var(--primary-dark);">
@@ -311,7 +332,7 @@
                             ${user.isActive === false && !isCurrentUser ? `
                                 <button class="action-btn" onclick="toggleUserStatus('${docSnap.id}', true)">🟢 Enable</button>
                             ` : ''}
-                        </div></td>
+                        </div></span>
                     </tr>`;
                 }
                 document.getElementById('usersList').innerHTML = html;
@@ -335,7 +356,7 @@
                     promotedBy: currentAdminId
                 });
                 alert('✅ User has been promoted to Admin!');
-                showManageUsers(); // 刷新列表
+                showManageUsers();
                 loadAdminStats();
             } catch (error) {
                 console.error("Error promoting user:", error);
@@ -352,7 +373,7 @@
             try {
                 await updateDoc(doc(db, 'users', userId), { isActive: isActive });
                 alert(`User ${isActive ? 'enabled' : 'disabled'} successfully!`);
-                showManageUsers(); // 刷新列表
+                showManageUsers();
                 loadAdminStats();
             } catch (error) {
                 console.error("Error toggling user status:", error);
