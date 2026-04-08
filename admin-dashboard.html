@@ -322,7 +322,9 @@
                                      Make Admin
                                 </button>
                             ` : ''}
-                            ${user.email === 'kennyjong10@gmail.com' && !isCurrentUser ? `
+                            const isProtectedUser = user.email === 'admin@system.com';
+
+                            ${user.role === 'admin' && !isCurrentUser && !isProtectedUser ? `
                                 <button class="action-btn" onclick="removeAdmin('${docSnap.id}')" style="background: var(--error); color: white;">
                                      Remove Admin
                                 </button>
