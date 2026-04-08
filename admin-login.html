@@ -2,169 +2,296 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Vehicle Service - Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Admin Dashboard - Smart Vehicle Service</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header">
-                <div class="logo-icon">👑</div>
-                <h1>Admin Portal</h1>
-                <p>Secure administrator access</p>
+    <div class="navbar">
+        <div class="logo">👑 Admin<span>Panel</span></div>
+        <div class="user-info">
+            <span class="user-name" id="adminName">Administrator</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="container-fluid">
+            <div class="welcome-card">
+                <h1>Admin Dashboard, <span id="welcomeAdmin">Admin</span>!</h1>
+                <p>System overview & management console</p>
             </div>
-            <div class="auth-body">
-                <div class="message" id="adminMessage"></div>
+
+            <div class="admin-stats">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalUsers">0</div>
+                    <div class="admin-stat-label">Total Users</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalVehicles">0</div>
+                    <div class="admin-stat-label">Total Vehicles</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalBookings">0</div>
+                    <div class="admin-stat-label">Total Bookings</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="pendingBookings">0</div>
+                    <div class="admin-stat-label">Pending Approvals</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="totalRevenue">$0</div>
+                    <div class="admin-stat-label">Total Revenue</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-number" id="monthlyRevenue">$0</div>
+                    <div class="admin-stat-label">This Month</div>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <h2>Admin Actions</h2>
+                <p>Manage system resources and monitor operations</p>
                 
-                <div class="form-group">
-                    <label>Admin Email</label>
-                    <div class="input-group">
-                        <i>📧</i>
-                        <input type="email" id="adminEmail" placeholder="admin@system.com">
+                <div class="feature-grid">
+                    <div class="feature-item" onclick="showManageUsers()">
+                        <div class="feature-icon">👥</div>
+                        <div class="feature-title">Manage Users</div>
+                        <div class="feature-desc">View, edit, or disable user accounts</div>
+                    </div>
+                    <div class="feature-item" onclick="showManageBookings()">
+                        <div class="feature-icon">📅</div>
+                        <div class="feature-title">Manage Bookings</div>
+                        <div class="feature-desc">Approve, reschedule, or cancel bookings</div>
+                    </div>
+                    <div class="feature-item" onclick="showRevenueReport()">
+                        <div class="feature-icon">💰</div>
+                        <div class="feature-title">Revenue Reports</div>
+                        <div class="feature-desc">View financial analytics</div>
+                    </div>
+                    <div class="feature-item" onclick="showSystemSettings()">
+                        <div class="feature-icon">⚙️</div>
+                        <div class="feature-title">System Settings</div>
+                        <div class="feature-desc">Configure service prices</div>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>Admin Password</label>
-                    <div class="input-group">
-                        <i>🔒</i>
-                        <input type="password" id="adminPassword" placeholder="Enter password">
+            </div>
+
+            <div class="recent-section">
+                <div class="section-header">
+                    <h3>Recent Bookings</h3>
+                    <a href="#" class="view-all-btn" onclick="showManageBookings()">Manage all →</a>
+                </div>
+                <div class="table-wrapper">
+                    <div id="bookingsLoading" class="loading-state">
+                        <div class="spinner-large"></div>
+                        <p>Loading bookings...</p>
+                    </div>
+                    <div id="bookingsEmpty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📅</div>
+                        <p>No bookings found</p>
+                    </div>
+                    <div id="bookingsTable" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr><th>Date</th><th>Customer</th><th>Service</th><th>Vehicle</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="bookingsList"></tbody>
+                        </table>
                     </div>
                 </div>
-                
-                <button class="btn btn-primary" onclick="handleAdminLogin()">Login as Admin</button>
-                
-                <div class="toggle-link">
-                    <a href="index.html">← Back to User Login</a>
-                </div>
-                
-                <div class="toggle-link" style="margin-top: 15px; font-size: 12px;">
-                    <strong>⚠️ First Time Setup:</strong> Register as admin first using the button below
-                </div>
-                
-                <button class="btn btn-secondary" onclick="createAdminAccount()" style="margin-top: 10px;">
-                    Create Admin Account (First Time)
-                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Users Modal -->
+    <div id="usersModal" class="modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:var(--primary-black-light); border-radius:20px; width:90%; max-width:1000px; max-height:80vh; overflow:auto; padding:25px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h2 style="color:var(--primary-gold)">Manage Users</h2>
+                <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
+            </div>
+            <div class="table-wrapper">
+                <table style="width:100%">
+                    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="usersList"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <script type="module">
-        import { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, doc, setDoc } from './js/firebase-config.js';
+        import { auth, db, onAuthStateChanged, signOut, collection, getDocs, query, where, orderBy, limit, doc, updateDoc, getDoc } from './js/firebase-config.js';
 
-        // 检查是否已登录 - 不会自动跳转
-        onAuthStateChanged(auth, (user) => {
-            if (user && user.email === 'admin@system.com') {
-                const msgDiv = document.getElementById('adminMessage');
-                msgDiv.className = 'message message-info';
-                msgDiv.textContent = `Already logged in as Admin. `;
-                msgDiv.style.display = 'block';
-                
-                const btn = document.createElement('button');
-                btn.textContent = 'Go to Admin Dashboard';
-                btn.className = 'btn btn-primary';
-                btn.style.marginTop = '10px';
-                btn.onclick = () => window.location.href = 'admin-dashboard.html';
-                msgDiv.appendChild(document.createElement('br'));
-                msgDiv.appendChild(btn);
+        // 检查 Admin 登录状态
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { 
+                window.location.href = 'admin-login.html'; 
+                return; 
             }
-        });
-
-        window.createAdminAccount = async () => {
-            const msgDiv = document.getElementById('adminMessage');
-            msgDiv.className = 'message message-info';
-            msgDiv.textContent = 'Creating admin account...';
-            msgDiv.style.display = 'block';
             
-            try {
-                // 创建 Admin 用户
-                const userCredential = await createUserWithEmailAndPassword(auth, 'admin@system.com', 'admin123');
-                const user = userCredential.user;
-                
-                await updateProfile(user, { displayName: 'Administrator' });
-                
-                await setDoc(doc(db, 'users', user.uid), {
-                    name: 'Administrator',
-                    email: 'admin@system.com',
-                    role: 'admin',
-                    isActive: true,
-                    createdAt: new Date().toISOString()
-                });
-                
-                msgDiv.className = 'message message-success';
-                msgDiv.innerHTML = '✅ Admin account created successfully!<br>Email: admin@system.com<br>Password: admin123<br><br>You can now login below.';
-                
-                // 填充表单
-                document.getElementById('adminEmail').value = 'admin@system.com';
-                document.getElementById('adminPassword').value = 'admin123';
-                
-            } catch (error) {
-                console.error("Create admin error:", error);
-                if (error.code === 'auth/email-already-in-use') {
-                    msgDiv.className = 'message message-info';
-                    msgDiv.innerHTML = 'Admin account already exists. Please login below.';
-                    document.getElementById('adminEmail').value = 'admin@system.com';
-                } else {
-                    msgDiv.className = 'message message-error';
-                    msgDiv.textContent = 'Error: ' + error.message;
-                }
-            }
-        };
-
-        window.handleAdminLogin = async () => {
-            const email = document.getElementById('adminEmail').value.trim();
-            const password = document.getElementById('adminPassword').value;
-            const msgDiv = document.getElementById('adminMessage');
+            // 验证是否是 admin
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const userData = userDoc.data();
             
-            if (!email || !password) {
-                msgDiv.className = 'message message-error';
-                msgDiv.textContent = 'Please fill in all fields';
-                msgDiv.style.display = 'block';
+            if (userData?.role !== 'admin' && user.email !== 'admin@system.com') {
+                alert('Access denied. Admin only.');
+                await signOut(auth);
+                window.location.href = 'admin-login.html';
                 return;
             }
             
-            msgDiv.className = 'message message-info';
-            msgDiv.textContent = 'Logging in...';
-            msgDiv.style.display = 'block';
-            
+            document.getElementById('adminName').textContent = 'Admin';
+            document.getElementById('welcomeAdmin').textContent = 'Admin';
+            await loadAdminStats();
+            await loadRecentBookings();
+        });
+
+        async function loadAdminStats() {
             try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+                const users = await getDocs(collection(db, 'users'));
+                const vehicles = await getDocs(collection(db, 'vehicles'));
+                const bookings = await getDocs(collection(db, 'appointments'));
+                const pending = await getDocs(query(collection(db, 'appointments'), where('status', '==', 'pending')));
+                const payments = await getDocs(collection(db, 'payments'));
+                let totalRevenue = 0, monthlyRevenue = 0;
+                const currentMonth = new Date().getMonth();
+                const currentYear = new Date().getFullYear();
                 
-                // 检查是否是 admin
-                const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', user.uid)));
-                let isAdmin = false;
-                userDoc.forEach(doc => {
-                    if (doc.data().role === 'admin') isAdmin = true;
+                payments.forEach(d => {
+                    const amount = d.data().amount || 0;
+                    totalRevenue += amount;
+                    const date = new Date(d.data().createdAt);
+                    if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                        monthlyRevenue += amount;
+                    }
                 });
                 
-                if (email === 'admin@system.com' || isAdmin) {
-                    msgDiv.className = 'message message-success';
-                    msgDiv.textContent = 'Admin login successful! Redirecting...';
-                    setTimeout(() => {
-                        window.location.href = 'admin-dashboard.html';
-                    }, 1000);
-                } else {
-                    throw new Error('Not an admin account');
-                }
+                document.getElementById('totalUsers').textContent = users.size;
+                document.getElementById('totalVehicles').textContent = vehicles.size;
+                document.getElementById('totalBookings').textContent = bookings.size;
+                document.getElementById('pendingBookings').textContent = pending.size;
+                document.getElementById('totalRevenue').textContent = `$${totalRevenue}`;
+                document.getElementById('monthlyRevenue').textContent = `$${monthlyRevenue}`;
             } catch (error) {
-                msgDiv.className = 'message message-error';
-                if (error.code === 'auth/user-not-found') {
-                    msgDiv.innerHTML = 'Admin account not found. Please click "Create Admin Account" first.';
-                } else {
-                    msgDiv.textContent = 'Login failed: ' + error.message;
+                console.error("Error loading stats:", error);
+            }
+        }
+
+        async function loadRecentBookings() {
+            try {
+                const snapshot = await getDocs(query(collection(db, 'appointments'), orderBy('createdAt', 'desc'), limit(10)));
+                document.getElementById('bookingsLoading').style.display = 'none';
+                
+                if (snapshot.empty) { 
+                    document.getElementById('bookingsEmpty').style.display = 'block';
+                    return; 
                 }
-                msgDiv.style.display = 'block';
+                
+                document.getElementById('bookingsTable').style.display = 'block';
+                let html = '';
+                for (const docSnap of snapshot.docs) {
+                    const booking = docSnap.data();
+                    
+                    // Get customer name
+                    let customer = 'Unknown';
+                    try {
+                        const userDoc = await getDoc(doc(db, 'users', booking.userId));
+                        if (userDoc.exists()) customer = userDoc.data().name || 'User';
+                    } catch(e) { console.error(e); }
+                    
+                    // Get vehicle
+                    let vehicle = 'Unknown';
+                    if (booking.vehicleId) {
+                        try {
+                            const vDoc = await getDoc(doc(db, 'vehicles', booking.vehicleId));
+                            if (vDoc.exists()) vehicle = `${vDoc.data().make || ''} ${vDoc.data().model || ''}`.trim() || 'Vehicle';
+                        } catch(e) { console.error(e); }
+                    }
+                    
+                    html += `<tr>
+                        <td>${booking.date || 'N/A'}</td>
+                        <td>${customer}</td>
+                        <td>${booking.serviceType || 'General'}</td>
+                        <td>${vehicle}</td>
+                        <td><span class="status-badge status-${booking.status || 'pending'}">${booking.status || 'pending'}</span></td>
+                        <td><div class="action-buttons">
+                            <button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'approved')">Approve</button>
+                            <button class="action-btn" onclick="updateBookingStatus('${docSnap.id}', 'cancelled')">Cancel</button>
+                        </div></td>
+                    </tr>`;
+                }
+                document.getElementById('bookingsList').innerHTML = html;
+            } catch (error) {
+                console.error("Error loading bookings:", error);
+                document.getElementById('bookingsLoading').innerHTML = '<p>Error loading bookings</p>';
+            }
+        }
+
+        window.updateBookingStatus = async (id, status) => {
+            try {
+                await updateDoc(doc(db, 'appointments', id), { status, updatedAt: new Date().toISOString() });
+                alert(`Booking ${status}!`);
+                loadRecentBookings();
+                loadAdminStats();
+            } catch (error) {
+                console.error("Error updating status:", error);
+                alert("Error updating status");
             }
         };
+
+        window.showManageUsers = async () => {
+            try {
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let html = '';
+                usersSnapshot.forEach(docSnap => {
+                    const user = docSnap.data();
+                    html += `<tr>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role || 'user'}</td>
+                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
+                        <td><span class="status-badge ${user.isActive !== false ? 'status-approved' : 'status-pending'}">${user.isActive !== false ? 'Active' : 'Disabled'}</span></td>
+                        <td><div class="action-buttons">
+                            <button class="action-btn" onclick="toggleUserStatus('${docSnap.id}')">Toggle Status</button>
+                        </div></td>
+                    </tr>`;
+                });
+                document.getElementById('usersList').innerHTML = html;
+                document.getElementById('usersModal').style.display = 'flex';
+            } catch (error) {
+                console.error("Error loading users:", error);
+                alert("Error loading users");
+            }
+        };
+
+        window.toggleUserStatus = async (userId) => {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                const current = userDoc.data().isActive !== false;
+                await updateDoc(doc(db, 'users', userId), { isActive: !current });
+                alert(`User ${!current ? 'activated' : 'disabled'}!`);
+                showManageUsers();
+                loadAdminStats();
+            } catch (error) {
+                console.error("Error toggling status:", error);
+                alert("Error updating status");
+            }
+        };
+
+        window.showManageBookings = () => { loadRecentBookings(); alert('📅 Booking Management - Scroll down to see all bookings'); };
+        window.showRevenueReport = () => { alert('💰 Revenue Reports - Detailed analytics coming soon'); };
+        window.showSystemSettings = () => { alert('⚙️ System Settings - Configure service prices'); };
+        window.closeModal = () => { document.getElementById('usersModal').style.display = 'none'; };
         
-        // 导入 query 和 collection
-        import { query, collection, where, getDocs } from './js/firebase-config.js';
-        window.query = query;
-        window.collection = collection;
-        window.where = where;
-        window.getDocs = getDocs;
+        window.logout = async () => { 
+            try {
+                await signOut(auth); 
+                window.location.href = 'admin-login.html'; 
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        };
     </script>
 </body>
 </html>
