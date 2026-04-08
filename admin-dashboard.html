@@ -326,6 +326,11 @@
                                      Make Admin
                                 </button>
                             ` : ''}
+                            ${user.role === 'admin' && !isCurrentUser ? `
+                                <button class="action-btn" onclick="removeAdmin('${docSnap.id}')" style="background: var(--error); color: white;">
+                                     Remove Admin
+                                </button>
+                            ` : ''}
                             ${user.isActive !== false && !isCurrentUser ? `
                                 <button class="action-btn" onclick="toggleUserStatus('${docSnap.id}', false)">🔴 Disable</button>
                             ` : ''}
