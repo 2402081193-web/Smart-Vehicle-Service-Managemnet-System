@@ -38,7 +38,7 @@
                     <div class="stat-label">Services Completed</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="totalSpent">$0</div>
+                    <div class="stat-number" id="totalSpent">RM0</div>
                     <div class="stat-label">Total Spent</div>
                 </div>
             </div>
@@ -150,7 +150,7 @@
                 document.getElementById('vehicleCount').textContent = vehicles.size;
                 document.getElementById('appointmentCount').textContent = appointments.size;
                 document.getElementById('serviceCount').textContent = completed.size;
-                document.getElementById('totalSpent').textContent = `$${total}`;
+                document.getElementById('totalSpent').textContent = `$RM{total}`;
             } catch (error) {
                 console.error("Error loading stats:", error);
             }
