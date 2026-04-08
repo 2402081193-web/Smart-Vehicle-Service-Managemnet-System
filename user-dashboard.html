@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>User Dashboard - Smart Vehicle Service</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">🚗 Smart<span>Service</span></div>
+        <div class="user-info">
+            <span class="user-name" id="userName">Loading...</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="container-fluid">
+            <div class="welcome-card">
+                <h1>Welcome back, <span id="welcomeName">User</span>!</h1>
+                <p>Your vehicle service management dashboard</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="vehicleCount">0</div>
+                    <div class="stat-label">Total Vehicles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="appointmentCount">0</div>
+                    <div class="stat-label">Active Appointments</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="serviceCount">0</div>
+                    <div class="stat-label">Services Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSpent">$0</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <h2>Quick Actions</h2>
+                <p>Manage your vehicles and services with ease</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-item" onclick="alert('📅 Book Service - Coming Soon!')">
+                        <div class="feature-icon">📅</div>
+                        <div class="feature-title">Book Service</div>
+                        <div class="feature-desc">Schedule maintenance appointments</div>
+                    </div>
+                    <div class="feature-item" onclick="alert('🚗 Add Vehicle - Coming Soon!')">
+                        <div class="feature-icon">🚗</div>
+                        <div class="feature-title">Add Vehicle</div>
+                        <div class="feature-desc">Register new vehicle</div>
+                    </div>
+                    <div class="feature-item" onclick="alert('📋 Service History - Coming Soon!')">
+                        <div class="feature-icon">📋</div>
+                        <div class="feature-title">Service History</div>
+                        <div class="feature-desc">View past services</div>
+                    </div>
+                    <div class="feature-item" onclick="alert('💰 Make Payment - Coming Soon!')">
+                        <div class="feature-icon">💰</div>
+                        <div class="feature-title">Make Payment</div>
+                        <div class="feature-desc">Pay pending invoices</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-section">
+                <div class="section-header">
+                    <h3>Recent Appointments</h3>
+                    <a href="#" class="view-all-btn" onclick="alert('View all appointments')">View all →</a>
+                </div>
+                <div class="table-wrapper">
+                    <div id="appointmentsLoading" class="loading-state">
+                        <div class="spinner-large"></div>
+                        <p>Loading appointments...</p>
+                    </div>
+                    <div id="appointmentsEmpty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📅</div>
+                        <p>No appointments yet</p>
+                    </div>
+                    <div id="appointmentsTable" style="display: none;">
+                        <table>
+                            <thead><tr><th>Date</th><th>Service</th><th>Vehicle</th><th>Status</th></tr></thead>
+                            <tbody id="appointmentsList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, signOut, doc, getDoc, collection, query, where, getDocs, orderBy, limit } from './js/firebase-config.js';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'index.html'; return; }
+            
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const userData = userDoc.data();
+            const name = userData?.name || user.displayName || 'User';
+            document.getElementById('userName').textContent = name;
+            document.getElementById('welcomeName').textContent = name.split(' ')[0];
+            
+            await loadStats(user.uid);
+            await loadAppointments(user.uid);
+        });
+
+        async function loadStats(userId) {
+            const vehicles = await getDocs(query(collection(db, 'vehicles'), where('userId', '==', userId)));
+            const appointments = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), where('status', 'in', ['pending', 'approved'])));
+            const completed = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), where('status', '==', 'completed')));
+            const payments = await getDocs(query(collection(db, 'payments'), where('userId', '==', userId), where('status', '==', 'completed')));
+            let total = 0; payments.forEach(d => total += d.data().amount || 0);
+            
+            document.getElementById('vehicleCount').textContent = vehicles.size;
+            document.getElementById('appointmentCount').textContent = appointments.size;
+            document.getElementById('serviceCount').textContent = completed.size;
+            document.getElementById('totalSpent').textContent = `$${total}`;
+        }
+
+        async function loadAppointments(userId) {
+            const snapshot = await getDocs(query(collection(db, 'appointments'), where('userId', '==', userId), orderBy('createdAt', 'desc'), limit(5)));
+            document.getElementById('appointmentsLoading').style.display = 'none';
+            
+            if (snapshot.empty) { document.getElementById('appointmentsEmpty').style.display = 'block'; return; }
+            
+            document.getElementById('appointmentsTable').style.display = 'block';
+            let html = '';
+            for (const docSnap of snapshot.docs) {
+                const apt = docSnap.data();
+                let vehicle = 'Unknown';
+                if (apt.vehicleId) {
+                    const vDoc = await getDoc(doc(db, 'vehicles', apt.vehicleId));
+                    if (vDoc.exists()) vehicle = `${vDoc.data().make || ''} ${vDoc.data().model || ''}`.trim() || 'Vehicle';
+                }
+                html += `<tr><td>${apt.date || 'N/A'}</td><td>${apt.serviceType || 'General'}</td><td>${vehicle}</td><td><span class="status-badge status-${apt.status || 'pending'}">${apt.status || 'pending'}</span></td></tr>`;
+            }
+            document.getElementById('appointmentsList').innerHTML = html;
+        }
+
+        window.logout = async () => { await signOut(auth); window.location.href = 'index.html'; };
+    </script>
+</body>
+</html>
