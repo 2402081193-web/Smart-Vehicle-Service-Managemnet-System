@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo"> Smart<span>Car</span> Service <span>Admin</span> Panel </div>
+        <div class="logo">👑 Smart<span>Car</span> Service <span>Admin</span></div>
         <div class="user-info">
             <span class="user-name" id="adminName">Loading...</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
@@ -177,7 +177,7 @@
                     return;
                 }
                 
-                // 显示真实的 Admin 名字（从数据库读取）
+                // 显示真实的 Admin 名字
                 const adminName = userData?.name || user.displayName || 'Administrator';
                 document.getElementById('adminName').textContent = adminName;
                 document.getElementById('welcomeAdmin').textContent = adminName;
@@ -226,10 +226,7 @@
 
         async function loadRecentBookings() {
             try {
-                // 不使用 orderBy 避免需要索引
-                const snapshot = await getDocs(query(
-                    collection(db, 'appointments')
-                ));
+                const snapshot = await getDocs(query(collection(db, 'appointments')));
                 
                 document.getElementById('bookingsLoading').style.display = 'none';
                 
@@ -238,7 +235,6 @@
                     return; 
                 }
                 
-                // 在 JavaScript 中排序
                 const bookings = snapshot.docs
                     .sort((a, b) => {
                         const dateA = a.data().createdAt ? new Date(a.data().createdAt) : new Date(0);
@@ -323,12 +319,12 @@
                         <td><div class="action-buttons">
                             ${user.role !== 'admin' && !isCurrentUser ? `
                                 <button class="action-btn" onclick="promoteToAdmin('${docSnap.id}')" style="background: var(--primary-gold); color: var(--primary-dark);">
-                                     Make Admin
+                                    👑 Make Admin
                                 </button>
                             ` : ''}
                             ${user.role === 'admin' && !isCurrentUser ? `
                                 <button class="action-btn" onclick="removeAdmin('${docSnap.id}')" style="background: var(--error); color: white;">
-                                     Remove Admin
+                                    🔻 Remove Admin
                                 </button>
                             ` : ''}
                             ${user.isActive !== false && !isCurrentUser ? `
@@ -366,6 +362,27 @@
             } catch (error) {
                 console.error("Error promoting user:", error);
                 alert('Error promoting user: ' + error.message);
+            }
+        };
+
+        // 撤销 Admin 权限（Remove Admin）
+        window.removeAdmin = async (userId) => {
+            if (!confirm('⚠️ WARNING: Are you sure you want to remove Admin privileges from this user?\n\nThey will become a regular user and lose all admin access.')) {
+                return;
+            }
+            
+            try {
+                await updateDoc(doc(db, 'users', userId), { 
+                    role: 'user',
+                    removedAt: new Date().toISOString(),
+                    removedBy: currentAdminId
+                });
+                alert('✅ Admin privileges removed! User is now a regular user.');
+                showManageUsers();
+                loadAdminStats();
+            } catch (error) {
+                console.error("Error removing admin:", error);
+                alert('Error removing admin: ' + error.message);
             }
         };
 
