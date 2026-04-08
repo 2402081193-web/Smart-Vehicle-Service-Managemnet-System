@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dashboard - Smart Vehicle Service</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Fixed Navbar -->
     <div class="navbar">
         <div class="logo">🚗 Smart Vehicle Service</div>
         <div class="user-info">
@@ -15,55 +16,95 @@
         </div>
     </div>
 
+    <!-- Main Dashboard Container (Full Screen) -->
     <div class="dashboard-container">
-        <div class="welcome-card">
-            <h1>Welcome back, <span id="welcomeName">User</span>!</h1>
-            <p>Your vehicle service management dashboard</p>
-        </div>
+        <div class="container-fluid">
+            <!-- Welcome Card -->
+            <div class="welcome-card">
+                <h1>Welcome back, <span id="welcomeName">User</span>!</h1>
+                <p>Your complete vehicle service management dashboard</p>
+            </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="vehicleCount">0</div>
-                <div class="stat-label">Total Vehicles</div>
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card" onclick="alert('View your vehicles')">
+                    <div class="stat-number" id="vehicleCount">0</div>
+                    <div class="stat-label">Total Vehicles</div>
+                </div>
+                <div class="stat-card" onclick="alert('View appointments')">
+                    <div class="stat-number" id="appointmentCount">0</div>
+                    <div class="stat-label">Active Appointments</div>
+                </div>
+                <div class="stat-card" onclick="alert('View service history')">
+                    <div class="stat-number" id="serviceCount">0</div>
+                    <div class="stat-label">Services Completed</div>
+                </div>
+                <div class="stat-card" onclick="alert('View payments')">
+                    <div class="stat-number" id="totalSpent">$0</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="appointmentCount">0</div>
-                <div class="stat-label">Active Appointments</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="serviceCount">0</div>
-                <div class="stat-label">Services Completed</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalSpent">$0</div>
-                <div class="stat-label">Total Spent</div>
-            </div>
-        </div>
 
-        <div class="dashboard-content">
-            <h2>System Features</h2>
-            <p>Your complete vehicle service management solution</p>
-            
-            <div class="feature-grid">
-                <div class="feature-item" onclick="alert('Book Service feature coming soon!')">
-                    <div class="feature-icon">📅</div>
-                    <div class="feature-title">Book Service</div>
-                    <div class="feature-desc">Schedule maintenance appointments</div>
+            <!-- Quick Actions -->
+            <div class="dashboard-content">
+                <h2>Quick Actions</h2>
+                <p>Manage your vehicles and services with ease</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-item" onclick="alert('Book Service feature coming soon!')">
+                        <div class="feature-icon">📅</div>
+                        <div class="feature-title">Book Service</div>
+                        <div class="feature-desc">Schedule maintenance appointments</div>
+                    </div>
+                    <div class="feature-item" onclick="alert('Manage Vehicles feature coming soon!')">
+                        <div class="feature-icon">🚗</div>
+                        <div class="feature-title">Manage Vehicles</div>
+                        <div class="feature-desc">Add and manage your vehicles</div>
+                    </div>
+                    <div class="feature-item" onclick="alert('Service History feature coming soon!')">
+                        <div class="feature-icon">📋</div>
+                        <div class="feature-title">Service History</div>
+                        <div class="feature-desc">View past service records</div>
+                    </div>
+                    <div class="feature-item" onclick="alert('Payments feature coming soon!')">
+                        <div class="feature-icon">💰</div>
+                        <div class="feature-title">Payments</div>
+                        <div class="feature-desc">Manage invoices and payments</div>
+                    </div>
                 </div>
-                <div class="feature-item" onclick="alert('Manage Vehicles feature coming soon!')">
-                    <div class="feature-icon">🚗</div>
-                    <div class="feature-title">Manage Vehicles</div>
-                    <div class="feature-desc">Add and manage your vehicles</div>
+            </div>
+
+            <!-- Recent Appointments Section -->
+            <div class="recent-section">
+                <div class="section-header">
+                    <h3>Recent Appointments</h3>
+                    <a href="#" class="view-all-btn" onclick="alert('View all appointments')">View all →</a>
                 </div>
-                <div class="feature-item" onclick="alert('Service History feature coming soon!')">
-                    <div class="feature-icon">📋</div>
-                    <div class="feature-title">Service History</div>
-                    <div class="feature-desc">View past service records</div>
-                </div>
-                <div class="feature-item" onclick="alert('Payments feature coming soon!')">
-                    <div class="feature-icon">💰</div>
-                    <div class="feature-title">Payments</div>
-                    <div class="feature-desc">Manage invoices and payments</div>
+                <div class="table-wrapper">
+                    <div id="appointmentsLoading" class="loading-state">
+                        <div class="spinner-large"></div>
+                        <p>Loading appointments...</p>
+                    </div>
+                    <div id="appointmentsEmpty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📅</div>
+                        <p>No appointments yet</p>
+                        <p style="font-size: 13px; margin-top: 5px;">Book your first service to get started</p>
+                    </div>
+                    <div id="appointmentsTable" style="display: none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Service Type</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointmentsList">
+                                <!-- Appointments will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,7 +121,9 @@
             collection,
             query,
             where,
-            getDocs
+            getDocs,
+            orderBy,
+            limit
         } from './js/firebase-config.js';
 
         // Check authentication
@@ -95,6 +138,7 @@
                 
                 // Load statistics
                 await loadStats(user.uid);
+                await loadRecentAppointments(user.uid);
             } else {
                 window.location.href = 'index.html';
             }
@@ -111,7 +155,7 @@
                 const appointmentsQuery = query(
                     collection(db, 'appointments'), 
                     where('userId', '==', userId),
-                    where('status', 'in', ['pending', 'approved'])
+                    where('status', 'in', ['pending', 'approved', 'in-progress'])
                 );
                 const appointmentsSnapshot = await getDocs(appointmentsQuery);
                 document.getElementById('appointmentCount').textContent = appointmentsSnapshot.size;
@@ -125,7 +169,7 @@
                 const completedSnapshot = await getDocs(completedQuery);
                 document.getElementById('serviceCount').textContent = completedSnapshot.size;
 
-                // Calculate total spent from payments
+                // Calculate total spent
                 const paymentsQuery = query(
                     collection(db, 'payments'), 
                     where('userId', '==', userId), 
@@ -142,6 +186,63 @@
             }
         }
 
+        async function loadRecentAppointments(userId) {
+            try {
+                const appointmentsQuery = query(
+                    collection(db, 'appointments'),
+                    where('userId', '==', userId),
+                    orderBy('createdAt', 'desc'),
+                    limit(5)
+                );
+                
+                const snapshot = await getDocs(appointmentsQuery);
+                
+                // Hide loading
+                document.getElementById('appointmentsLoading').style.display = 'none';
+                
+                if (snapshot.empty) {
+                    document.getElementById('appointmentsEmpty').style.display = 'block';
+                    return;
+                }
+                
+                // Show table
+                document.getElementById('appointmentsTable').style.display = 'block';
+                
+                let html = '';
+                for (const doc of snapshot.docs) {
+                    const appointment = doc.data();
+                    
+                    // Get vehicle details
+                    let vehicleName = 'Unknown';
+                    if (appointment.vehicleId) {
+                        const vehicleDoc = await getDoc(doc(db, 'vehicles', appointment.vehicleId));
+                        if (vehicleDoc.exists()) {
+                            const vehicle = vehicleDoc.data();
+                            vehicleName = `${vehicle.make || ''} ${vehicle.model || ''}`.trim() || 'Vehicle';
+                        }
+                    }
+                    
+                    const statusClass = `status-${appointment.status || 'pending'}`;
+                    const date = appointment.date ? new Date(appointment.date).toLocaleDateString() : 'N/A';
+                    
+                    html += `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${appointment.serviceType || 'General Service'}</td>
+                            <td>${vehicleName}</td>
+                            <td><span class="status-badge ${statusClass}">${appointment.status || 'pending'}</span></td>
+                        </tr>
+                    `;
+                }
+                
+                document.getElementById('appointmentsList').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                document.getElementById('appointmentsLoading').innerHTML = '<p>Error loading appointments</p>';
+            }
+        }
+
         window.logout = async function() {
             try {
                 await signOut(auth);
@@ -151,6 +252,12 @@
                 alert('Error logging out');
             }
         };
+
+        // Handle window resize for dynamic adjustments
+        window.addEventListener('resize', function() {
+            // Optional: Add any resize-specific logic here
+            console.log('Window resized to:', window.innerWidth, 'x', window.innerHeight);
+        });
     </script>
 </body>
 </html>
