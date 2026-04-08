@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Vehicle Service - Admin Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-icon">👑</div>
+                <h1>Admin Portal</h1>
+                <p>Secure administrator access</p>
+            </div>
+            <div class="auth-body">
+                <div class="message" id="adminMessage"></div>
+                
+                <div class="form-group">
+                    <label>Admin Email</label>
+                    <div class="input-group">
+                        <i>📧</i>
+                        <input type="email" id="adminEmail" placeholder="admin@system.com">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Admin Password</label>
+                    <div class="input-group">
+                        <i>🔒</i>
+                        <input type="password" id="adminPassword" placeholder="Enter password">
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="handleAdminLogin()">Login as Admin</button>
+                
+                <div class="toggle-link">
+                    <a href="index.html">← Back to User Login</a>
+                </div>
+                
+                <div class="toggle-link" style="margin-top: 15px; font-size: 12px;">
+                    <strong>Demo Admin:</strong> admin@system.com / admin123
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, signInWithEmailAndPassword, onAuthStateChanged } from './js/firebase-config.js';
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === 'admin@system.com') {
+                window.location.href = 'admin-dashboard.html';
+            }
+        });
+
+        window.handleAdminLogin = async () => {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const msgDiv = document.getElementById('adminMessage');
+            
+            if (email !== 'admin@system.com') {
+                msgDiv.className = 'message message-error';
+                msgDiv.textContent = 'Invalid admin credentials';
+                msgDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                msgDiv.className = 'message message-success';
+                msgDiv.textContent = 'Admin login successful! Redirecting...';
+                msgDiv.style.display = 'block';
+                setTimeout(() => window.location.href = 'admin-dashboard.html', 1000);
+            } catch (error) {
+                msgDiv.className = 'message message-error';
+                msgDiv.textContent = 'Invalid admin credentials';
+                msgDiv.style.display = 'block';
+            }
+        };
+    </script>
+</body>
+</html>
