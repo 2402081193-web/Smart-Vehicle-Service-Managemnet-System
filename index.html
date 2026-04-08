@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Vehicle Service - Login & Register</title>
+    <title>Smart Vehicle Service - User Portal</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Login Form -->
-        <div class="card" id="loginForm">
-            <div class="card-header">
+    <div class="auth-container">
+        <div class="auth-card" id="loginForm">
+            <div class="auth-header">
                 <div class="logo-icon">🚗</div>
                 <h1>Smart Vehicle Service</h1>
                 <p>Login to your account</p>
             </div>
-            <div class="card-body">
+            <div class="auth-body">
                 <div class="message" id="loginMessage"></div>
                 
                 <div class="form-group">
@@ -34,25 +33,25 @@
                     </div>
                 </div>
                 
-                <button type="button" class="btn btn-primary" id="loginButton" onclick="handleLogin()">
-                    Login
-                </button>
+                <button class="btn btn-primary" onclick="handleLogin()">Login</button>
                 
                 <div class="toggle-link">
-                    Don't have an account? 
-                    <a onclick="showRegister()">Register here</a>
+                    Don't have an account? <a onclick="showRegister()">Register here</a>
+                </div>
+                
+                <div class="toggle-link">
+                    <a href="admin-login.html">Admin Login →</a>
                 </div>
             </div>
         </div>
 
-        <!-- Register Form -->
-        <div class="card hidden" id="registerForm">
-            <div class="card-header">
+        <div class="auth-card hidden" id="registerForm">
+            <div class="auth-header">
                 <div class="logo-icon">🚗</div>
                 <h1>Create Account</h1>
                 <p>Sign up to get started</p>
             </div>
-            <div class="card-body">
+            <div class="auth-body">
                 <div class="message" id="registerMessage"></div>
                 
                 <div class="form-group">
@@ -61,7 +60,6 @@
                         <i>👤</i>
                         <input type="text" id="registerName" placeholder="Enter your full name">
                     </div>
-                    <div class="validation-message" id="nameError"></div>
                 </div>
                 
                 <div class="form-group">
@@ -70,7 +68,6 @@
                         <i>📧</i>
                         <input type="email" id="registerEmail" placeholder="Enter your email">
                     </div>
-                    <div class="validation-message" id="emailError"></div>
                 </div>
                 
                 <div class="form-group">
@@ -82,8 +79,6 @@
                     <div class="password-strength">
                         <div class="strength-bar" id="strengthBar"></div>
                     </div>
-                    <div class="strength-text" id="strengthText"></div>
-                    <div class="validation-message" id="passwordError"></div>
                 </div>
                 
                 <div class="form-group">
@@ -92,16 +87,12 @@
                         <i>✓</i>
                         <input type="password" id="registerConfirm" placeholder="Re-enter your password">
                     </div>
-                    <div class="validation-message" id="confirmError"></div>
                 </div>
                 
-                <button type="button" class="btn btn-primary" id="registerButton" onclick="handleRegister()">
-                    Create Account
-                </button>
+                <button class="btn btn-primary" onclick="handleRegister()">Create Account</button>
                 
                 <div class="toggle-link">
-                    Already have an account? 
-                    <a onclick="showLogin()">Login here</a>
+                    Already have an account? <a onclick="showLogin()">Login here</a>
                 </div>
             </div>
         </div>
@@ -109,328 +100,92 @@
 
     <script type="module">
         import { 
-            auth, 
-            db,
+            auth, db,
             signInWithEmailAndPassword,
             createUserWithEmailAndPassword,
             updateProfile,
             onAuthStateChanged,
-            doc,
-            setDoc
+            doc, setDoc
         } from './js/firebase-config.js';
 
-        // Check if user is already logged in
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.location.href = 'dashboard.html';
-            }
+            if (user) window.location.href = 'user-dashboard.html';
         });
 
-        // Password strength checker
         function checkPasswordStrength(password) {
             let strength = 0;
-            let message = '';
-            let color = '';
-
             if (password.length >= 6) strength++;
             if (password.length >= 8) strength++;
             if (/[A-Z]/.test(password)) strength++;
             if (/[0-9]/.test(password)) strength++;
-            if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-            if (password.length === 0) {
-                message = '';
-                color = '#e0e0e0';
-            } else if (strength <= 1) {
-                message = 'Weak password';
-                color = '#f44336';
-            } else if (strength <= 3) {
-                message = 'Medium password';
-                color = '#ff9800';
-            } else {
-                message = 'Strong password';
-                color = '#4caf50';
-            }
-
-            return { strength, message, color, width: (strength / 5) * 100 };
+            let width = (strength / 4) * 100;
+            let color = strength <= 1 ? '#ff3b30' : strength <= 2 ? '#ff9500' : '#00c853';
+            document.getElementById('strengthBar').style.width = width + '%';
+            document.getElementById('strengthBar').style.backgroundColor = color;
         }
 
-        // Real-time password strength checking
-        const passwordInput = document.getElementById('registerPassword');
-        const strengthBar = document.getElementById('strengthBar');
-        const strengthText = document.getElementById('strengthText');
+        document.getElementById('registerPassword')?.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
 
-        if (passwordInput) {
-            passwordInput.addEventListener('input', function() {
-                const result = checkPasswordStrength(this.value);
-                strengthBar.style.width = result.width + '%';
-                strengthBar.style.backgroundColor = result.color;
-                strengthText.textContent = result.message;
-                strengthText.style.color = result.color;
-            });
-        }
-
-        // Validation functions
-        function validateName(name) {
-            if (!name || name.trim().length < 2) {
-                return { valid: false, message: 'Name must be at least 2 characters' };
-            }
-            if (name.trim().length > 50) {
-                return { valid: false, message: 'Name must be less than 50 characters' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        function validateEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email) {
-                return { valid: false, message: 'Email is required' };
-            }
-            if (!emailRegex.test(email)) {
-                return { valid: false, message: 'Please enter a valid email address' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        function validatePassword(password) {
-            if (!password) {
-                return { valid: false, message: 'Password is required' };
-            }
-            if (password.length < 6) {
-                return { valid: false, message: 'Password must be at least 6 characters' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        function validateConfirm(password, confirm) {
-            if (!confirm) {
-                return { valid: false, message: 'Please confirm your password' };
-            }
-            if (password !== confirm) {
-                return { valid: false, message: 'Passwords do not match' };
-            }
-            return { valid: true, message: '' };
-        }
-
-        // UI Functions
-        function showMessage(element, type, text) {
-            element.className = `message message-${type}`;
-            element.textContent = text;
-            element.style.display = 'block';
-        }
-
-        function setLoading(button, isLoading, originalText) {
-            if (isLoading) {
-                button.disabled = true;
-                button.innerHTML = '<span class="spinner"></span> Processing...';
-            } else {
-                button.disabled = false;
-                button.innerHTML = originalText;
-            }
-        }
-
-        function clearMessages() {
-            const messages = document.querySelectorAll('.message');
-            messages.forEach(msg => {
-                msg.style.display = 'none';
-            });
-        }
-
-        // Form toggle functions
-        window.showRegister = function() {
+        window.showRegister = () => {
             document.getElementById('loginForm').classList.add('hidden');
             document.getElementById('registerForm').classList.remove('hidden');
-            clearMessages();
         };
 
-        window.showLogin = function() {
+        window.showLogin = () => {
             document.getElementById('registerForm').classList.add('hidden');
             document.getElementById('loginForm').classList.remove('hidden');
-            clearMessages();
         };
 
-        // Handle Login
-        window.handleLogin = async function() {
-            const email = document.getElementById('loginEmail').value.trim();
+        window.handleLogin = async () => {
+            const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const messageDiv = document.getElementById('loginMessage');
-            const loginButton = document.getElementById('loginButton');
-
-            clearMessages();
-
-            if (!email || !password) {
-                showMessage(messageDiv, 'error', 'Please fill in all fields');
-                return;
-            }
-
-            const emailValidation = validateEmail(email);
-            if (!emailValidation.valid) {
-                showMessage(messageDiv, 'error', emailValidation.message);
-                return;
-            }
-
-            setLoading(loginButton, true, 'Login');
-
+            const msgDiv = document.getElementById('loginMessage');
+            
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                showMessage(messageDiv, 'success', 'Login successful! Redirecting...');
-                
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
+                msgDiv.className = 'message message-success';
+                msgDiv.textContent = 'Login successful! Redirecting...';
+                msgDiv.style.display = 'block';
+                setTimeout(() => window.location.href = 'user-dashboard.html', 1000);
             } catch (error) {
-                let errorMessage = 'Login failed. ';
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage += 'User not found. Please register first.';
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage += 'Incorrect password.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage += 'Invalid email format.';
-                        break;
-                    default:
-                        errorMessage += error.message;
-                }
-                showMessage(messageDiv, 'error', errorMessage);
-                setLoading(loginButton, false, 'Login');
+                msgDiv.className = 'message message-error';
+                msgDiv.textContent = error.message;
+                msgDiv.style.display = 'block';
             }
         };
 
-        // Handle Register
-        window.handleRegister = async function() {
-            const name = document.getElementById('registerName').value.trim();
-            const email = document.getElementById('registerEmail').value.trim();
+        window.handleRegister = async () => {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             const confirm = document.getElementById('registerConfirm').value;
-            const messageDiv = document.getElementById('registerMessage');
-            const registerButton = document.getElementById('registerButton');
-
-            clearMessages();
+            const msgDiv = document.getElementById('registerMessage');
             
-            // Clear previous validation errors
-            document.querySelectorAll('.validation-message').forEach(el => {
-                el.classList.remove('show');
-                el.textContent = '';
-            });
-
-            // Validate
-            const nameValidation = validateName(name);
-            if (!nameValidation.valid) {
-                const nameError = document.getElementById('nameError');
-                nameError.textContent = nameValidation.message;
-                nameError.classList.add('show', 'error');
+            if (password !== confirm) {
+                msgDiv.className = 'message message-error';
+                msgDiv.textContent = 'Passwords do not match';
+                msgDiv.style.display = 'block';
                 return;
             }
-
-            const emailValidation = validateEmail(email);
-            if (!emailValidation.valid) {
-                const emailError = document.getElementById('emailError');
-                emailError.textContent = emailValidation.message;
-                emailError.classList.add('show', 'error');
-                return;
-            }
-
-            const passwordValidation = validatePassword(password);
-            if (!passwordValidation.valid) {
-                const passwordError = document.getElementById('passwordError');
-                passwordError.textContent = passwordValidation.message;
-                passwordError.classList.add('show', 'error');
-                return;
-            }
-
-            const confirmValidation = validateConfirm(password, confirm);
-            if (!confirmValidation.valid) {
-                const confirmError = document.getElementById('confirmError');
-                confirmError.textContent = confirmValidation.message;
-                confirmError.classList.add('show', 'error');
-                return;
-            }
-
-            setLoading(registerButton, true, 'Create Account');
-
+            
             try {
-                // Create user in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                // Update profile with name
-                await updateProfile(user, { displayName: name });
-                
-                // Save user data to Firestore
-                await setDoc(doc(db, 'users', user.uid), {
-                    uid: user.uid,
-                    name: name,
-                    email: email,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    role: 'customer',
-                    isActive: true
+                await updateProfile(userCredential.user, { displayName: name });
+                await setDoc(doc(db, 'users', userCredential.user.uid), {
+                    name, email, role: 'user', createdAt: new Date().toISOString()
                 });
-                
-                showMessage(messageDiv, 'success', 'Account created successfully! Redirecting...');
-                
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1500);
+                msgDiv.className = 'message message-success';
+                msgDiv.textContent = 'Account created! Redirecting...';
+                msgDiv.style.display = 'block';
+                setTimeout(() => window.location.href = 'user-dashboard.html', 1500);
             } catch (error) {
-                let errorMessage = 'Registration failed. ';
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage += 'Email already exists. Please login instead.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage += 'Invalid email format.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage += 'Password is too weak.';
-                        break;
-                    default:
-                        errorMessage += error.message;
-                }
-                showMessage(messageDiv, 'error', errorMessage);
-                setLoading(registerButton, false, 'Create Account');
+                msgDiv.className = 'message message-error';
+                msgDiv.textContent = error.message;
+                msgDiv.style.display = 'block';
             }
         };
-
-        // Real-time validation
-        document.getElementById('registerName')?.addEventListener('input', function() {
-            const result = validateName(this.value);
-            const errorDiv = document.getElementById('nameError');
-            if (!result.valid && this.value) {
-                errorDiv.textContent = result.message;
-                errorDiv.classList.add('show', 'error');
-            } else {
-                errorDiv.classList.remove('show');
-            }
-        });
-
-        document.getElementById('registerEmail')?.addEventListener('input', function() {
-            const result = validateEmail(this.value);
-            const errorDiv = document.getElementById('emailError');
-            if (!result.valid && this.value) {
-                errorDiv.textContent = result.message;
-                errorDiv.classList.add('show', 'error');
-            } else {
-                errorDiv.classList.remove('show');
-            }
-        });
-
-        document.getElementById('registerConfirm')?.addEventListener('input', function() {
-            const password = document.getElementById('registerPassword').value;
-            const result = validateConfirm(password, this.value);
-            const errorDiv = document.getElementById('confirmError');
-            if (!result.valid && this.value) {
-                errorDiv.textContent = result.message;
-                errorDiv.classList.add('show', 'error');
-            } else if (this.value && result.valid) {
-                errorDiv.textContent = '✓ Passwords match';
-                errorDiv.classList.add('show', 'success');
-            } else {
-                errorDiv.classList.remove('show');
-            }
-        });
     </script>
 </body>
 </html>
