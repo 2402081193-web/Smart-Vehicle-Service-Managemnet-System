@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo"> Smart<span>Car</span> Service <span>Admin</span> Panel </div>
+        <div class="logo"> Smart<span>Car</span> Service <span>Admin</span> Panel</div>
         <div class="user-info">
             <span class="user-name" id="adminName">Loading...</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
@@ -152,6 +152,9 @@
         let isCheckingAuth = false;
         let currentAdminId = null;
         let currentAdminData = null;
+
+        // 定义受保护的 Admin 邮箱（不能被移除）
+        const protectedAdmins = ['admin@system.com', 'kennyjong10@gmail.com'];
 
         onAuthStateChanged(auth, async (user) => {
             if (isCheckingAuth) return;
@@ -300,6 +303,8 @@
                 for (const docSnap of usersSnapshot.docs) {
                     const user = docSnap.data();
                     const isCurrentUser = docSnap.id === currentAdminId;
+                    // 检查是否是受保护的 Admin（不能被移除）
+                    const isProtectedUser = protectedAdmins.includes(user.email);
                     
                     html += `<tr>
                         <td>${user.name || 'N/A'}</span>
@@ -322,8 +327,6 @@
                                      Make Admin
                                 </button>
                             ` : ''}
-                            const isProtectedUser = user.email === 'kennyjong10@gmail.com';
-
                             ${user.role === 'admin' && !isCurrentUser && !isProtectedUser ? `
                                 <button class="action-btn" onclick="removeAdmin('${docSnap.id}')" style="background: var(--error); color: white;">
                                      Remove Admin
