@@ -1,0 +1,253 @@
+/* ========================================
+   RESPONSIVE STYLES
+   All Breakpoints
+   ======================================== */
+
+/* Large Desktop (1200px and above) */
+@media (min-width: 1920px) {
+    .container-fluid {
+        max-width: 1600px;
+    }
+    
+    .stats-grid {
+        gap: 30px;
+    }
+    
+    .stat-number {
+        font-size: 56px;
+    }
+    
+    .feature-grid {
+        gap: 30px;
+    }
+}
+
+/* Desktop (992px - 1199px) */
+@media (max-width: 1200px) {
+    .container-fluid {
+        padding: 0 20px;
+    }
+    
+    .stats-grid {
+        gap: 20px;
+    }
+}
+
+/* Laptop (768px - 991px) */
+@media (max-width: 992px) {
+    .dashboard-container {
+        padding-top: 70px;
+    }
+    
+    .stat-number {
+        font-size: 36px;
+    }
+    
+    .feature-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+    }
+    
+    .welcome-card h1 {
+        font-size: 28px;
+    }
+    
+    .admin-stats {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+    }
+}
+
+/* Tablet (576px - 767px) */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 12px 20px;
+    }
+    
+    .logo {
+        font-size: 18px;
+    }
+    
+    .user-name {
+        display: none;
+    }
+    
+    .dashboard-container {
+        padding-top: 65px;
+    }
+    
+    .container-fluid {
+        padding: 0 15px;
+    }
+    
+    .welcome-card {
+        padding: 25px;
+    }
+    
+    .welcome-card h1 {
+        font-size: 22px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-number {
+        font-size: 28px;
+    }
+    
+    .dashboard-content {
+        padding: 25px;
+    }
+    
+    .dashboard-content h2 {
+        font-size: 20px;
+    }
+    
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .feature-item {
+        padding: 20px 15px;
+    }
+    
+    .feature-icon {
+        font-size: 32px;
+    }
+    
+    .feature-title {
+        font-size: 14px;
+    }
+    
+    .feature-desc {
+        font-size: 11px;
+    }
+    
+    .section-header h3 {
+        font-size: 18px;
+    }
+    
+    th, td {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+    
+    .admin-stat-number {
+        font-size: 24px;
+    }
+}
+
+/* Mobile (480px - 575px) */
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .admin-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .welcome-card {
+        padding: 20px;
+    }
+    
+    .dashboard-content {
+        padding: 20px;
+    }
+    
+    .stat-number {
+        font-size: 32px;
+    }
+}
+
+/* Small Mobile (below 480px) */
+@media (max-width: 480px) {
+    .navbar {
+        padding: 10px 15px;
+    }
+    
+    .user-info {
+        gap: 10px;
+    }
+    
+    .dashboard-container {
+        padding-top: 60px;
+    }
+    
+    .container-fluid {
+        padding: 0 12px;
+    }
+    
+    th, td {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+    
+    .admin-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        padding: 15px;
+    }
+    
+    .modal-header h2 {
+        font-size: 20px;
+    }
+}
+
+/* Landscape Mode Optimization */
+@media (max-height: 600px) and (orientation: landscape) {
+    .dashboard-container {
+        padding-top: 70px;
+    }
+    
+    .stats-grid {
+        margin-bottom: 20px;
+    }
+    
+    .welcome-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .feature-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .navbar, .logout-btn, .feature-item, .action-buttons {
+        display: none;
+    }
+    
+    .dashboard-container {
+        padding-top: 0;
+        background: white;
+    }
+    
+    .welcome-card, .stat-card, .dashboard-content {
+        background: white;
+        color: black;
+        border: 1px solid #ddd;
+    }
+    
+    .stat-number {
+        color: black;
+    }
+}
