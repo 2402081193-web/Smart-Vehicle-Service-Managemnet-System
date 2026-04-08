@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Vehicle Service - Admin Login</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <div class="auth-container">
@@ -60,24 +62,18 @@
             collection, query, where, getDocs
         } from './js/firebase-config.js';
 
-        // 检查是否已登录 - 使用 setTimeout 避免立即重定向
-        // 注意：这里不自动重定向，让用户自己点击登录
-        
         window.createAdminAccount = async () => {
             const msgDiv = document.getElementById('adminMessage');
             const createBtn = document.getElementById('createBtn');
-            const loginBtn = document.getElementById('loginBtn');
             
             msgDiv.className = 'message message-info';
             msgDiv.textContent = 'Creating admin account...';
             msgDiv.style.display = 'block';
             
-            // 禁用按钮防止重复点击
             createBtn.disabled = true;
             createBtn.textContent = 'Creating...';
             
             try {
-                // 先检查 admin 是否已存在
                 const usersRef = collection(db, 'users');
                 const q = query(usersRef, where('email', '==', 'admin@system.com'));
                 const querySnapshot = await getDocs(q);
@@ -92,7 +88,6 @@
                     return;
                 }
                 
-                // 创建 Admin 用户
                 const userCredential = await createUserWithEmailAndPassword(auth, 'admin@system.com', 'admin123');
                 const user = userCredential.user;
                 
@@ -109,7 +104,6 @@
                 msgDiv.className = 'message message-success';
                 msgDiv.innerHTML = '✅ Admin account created successfully!<br>📧 Email: admin@system.com<br>🔑 Password: admin123<br><br>You can now login below.';
                 
-                // 填充表单
                 document.getElementById('adminEmail').value = 'admin@system.com';
                 document.getElementById('adminPassword').value = 'admin123';
                 
@@ -144,7 +138,6 @@
                 return;
             }
             
-            // 禁用按钮防止重复点击
             loginBtn.disabled = true;
             loginBtn.textContent = 'Logging in...';
             msgDiv.className = 'message message-info';
@@ -155,7 +148,6 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
-                // 检查是否是 admin
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 const userData = userDoc.data();
                 
@@ -163,7 +155,6 @@
                     msgDiv.className = 'message message-success';
                     msgDiv.textContent = 'Admin login successful! Redirecting...';
                     
-                    // 延迟跳转，让用户看到成功消息
                     setTimeout(() => {
                         window.location.href = 'admin-dashboard.html';
                     }, 1000);
@@ -171,7 +162,6 @@
                     throw new Error('Not an admin account');
                 }
             } catch (error) {
-                console.error("Login error:", error);
                 msgDiv.className = 'message message-error';
                 if (error.code === 'auth/user-not-found') {
                     msgDiv.innerHTML = '❌ Admin account not found.<br>Please click "Create Admin Account" first.';
