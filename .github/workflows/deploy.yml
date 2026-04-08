@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true  # 改为 true，取消正在进行的旧任务
+
 jobs:
   deploy:
     environment:
@@ -22,6 +26,12 @@ jobs:
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      
+      - name: Clean up old artifacts
+        run: |
+          echo "Cleaning up old artifacts..."
+          # 删除旧的 artifact
+          rm -rf /home/runner/work/_temp/*
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
