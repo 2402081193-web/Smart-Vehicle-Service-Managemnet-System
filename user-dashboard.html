@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="navbar">
-        <div class="logo">Smart<span>Car</span>Service</span>Booking</span></div>
+        <div class="logo">🚗 Smart<span>Car</span> Service</div>
         <div class="user-info">
             <span class="user-name" id="userName">Loading...</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
@@ -394,7 +394,6 @@
                     document.getElementById('vehiclePlate').value = vehicle.plateNumber || '';
                     document.getElementById('vehicleMileage').value = vehicle.mileage || '';
                     document.getElementById('vehicleFuelType').value = vehicle.fuelType || '';
-                    document.getElementById('vehicleVin').value = vehicle.vin || '';
                     document.getElementById('vehicleNotes').value = vehicle.notes || '';
                     
                     document.getElementById('vehicleModal').classList.add('active');
@@ -414,7 +413,6 @@
             const plateNumber = document.getElementById('vehiclePlate').value.trim().toUpperCase();
             const mileage = parseInt(document.getElementById('vehicleMileage').value) || 0;
             const fuelType = document.getElementById('vehicleFuelType').value;
-            const vin = document.getElementById('vehicleVin').value.trim().toUpperCase();
             const notes = document.getElementById('vehicleNotes').value.trim();
             
             // Validation
@@ -445,7 +443,6 @@
                     plateNumber: plateNumber,
                     mileage: mileage,
                     fuelType: fuelType,
-                    vin: vin,
                     notes: notes,
                     updatedAt: new Date().toISOString()
                 };
